@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: societra-db-prod
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-chs_society}
+      - POSTGRES_USER=${POSTGRES_USER:-chs_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - societra-net-prod
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chs_admin} -d ${POSTGRES_DB:-chs_society}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: societra-backend-prod
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-chs_society}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-chs_admin}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - CHS_APP_JWTSECRET=${JWT_SECRET}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOGGING_FILE_NAME=/app/logs/application.log
+      - LOGGING_PATTERN_FILE=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - societra-net-prod
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NGINX_CONF=nginx.conf.prod
+    container_name: societra-frontend-prod
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - societra-net-prod
+
+networks:
+  societra-net-prod:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:

@@ -48,9 +48,9 @@ jobs:
       - name: Write Android local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > frontend/android/local.properties
 
-      - name: Sync Capacitor web assets to Android
+      - name: Sync Capacitor (generates cordova plugin gradle files)
         working-directory: frontend
-        run: ./node_modules/.bin/cap copy android
+        run: ./node_modules/.bin/cap sync android --inline
 
       - name: Cache Gradle packages
         uses: actions/cache@v4

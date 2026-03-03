@@ -16,19 +16,34 @@ public class ShareCertificateService {
 
     private final ShareCertificateRepository certificateRepository;
     private final UnitRepository unitRepository;
+    private final com.chs.society.repository.UserRepository userRepository;
+    private final PdfService pdfService;
 
-    public ShareCertificateService(ShareCertificateRepository certificateRepository, UnitRepository unitRepository) {
+    public ShareCertificateService(ShareCertificateRepository certificateRepository,
+            UnitRepository unitRepository,
+            com.chs.society.repository.UserRepository userRepository,
+            PdfService pdfService) {
         this.certificateRepository = certificateRepository;
         this.unitRepository = unitRepository;
+        this.userRepository = userRepository;
+        this.pdfService = pdfService;
     }
 
     public List<ShareCertificate> getCertificatesBySociety(UUID societyId) {
         return certificateRepository.findBySocietyId(societyId);
     }
 
+    public List<ShareCertificate> getCertificatesBySocietyMember(String email) {
+        com.chs.society.model.User user = userRepository.findByEmail(email).orElseThrow();
+        if (user.getSociety() == null)
+            return java.util.Collections.emptyList();
+        return certificateRepository.findBySocietyId(user.getSociety().getId());
+    }
+
     @Transactional
-    public ShareCertificate generateForUnit(UUID unitId, String memberName, Integer startNo, Integer count) {
-        Unit unit = unitRepository.findById(unitId)
+    public ShareCertificate generateForUnit(UUID unitId, String memberName, Integer startNo, Integer count,
+            java.math.BigDecimal shareValue, String chairmanName, String secretaryName) {
+        Unit unit = unitRepository.findById(java.util.Objects.requireNonNull(unitId))
                 .orElseThrow(() -> new RuntimeException("Unit not found"));
 
         ShareCertificate certificate = ShareCertificate.builder()
@@ -39,17 +54,20 @@ public class ShareCertificateService {
                 .sharesFrom(startNo)
                 .sharesTo(startNo + count - 1)
                 .totalShares(count)
+                .shareValue(shareValue)
+                .chairmanName(chairmanName)
+                .secretaryName(secretaryName)
                 .issueDate(LocalDate.now())
                 .status("ISSUED")
                 .build();
 
-        return certificateRepository.save(certificate);
+        return certificateRepository.save(java.util.Objects.requireNonNull(certificate));
     }
 
+    @Transactional(readOnly = true)
     public byte[] generatePdf(UUID certificateId) {
-        // Logic to generate high-quality PDF using iText/OpenPDF
-        // This would involve loading a template and filling in the certificate details
-        // For now, returning a dummy byte array
-        return "Dummy PDF Content for Share Certificate".getBytes();
+        ShareCertificate cert = certificateRepository.findById(certificateId)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+        return pdfService.generateShareCertificatePdf(cert);
     }
 }

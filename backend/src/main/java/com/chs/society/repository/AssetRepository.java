@@ -9,5 +9,8 @@ import java.util.UUID;
 
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, UUID> {
-    List<Asset> findBySocietyId(UUID societyId);
+    List<Asset> findBySocietyIdOrderByIdDesc(UUID societyId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteBySocietyId(UUID societyId);
 }

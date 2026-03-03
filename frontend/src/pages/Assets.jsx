@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Box,
@@ -11,16 +11,64 @@ import {
     TrendingDown,
     Calendar,
     MapPin,
-    ExternalLink
+    ExternalLink,
+    X,
+    Package,
+    CheckCircle2,
+    Settings,
+    MoreVertical,
+    FileText
 } from 'lucide-react';
+import api from '../api';
 
 const Assets = () => {
-    const assets = [
-        { id: 1, name: 'Main Water Pump - Wing A', category: 'PUMP', location: 'Basement A', status: 'HEALTHY', lastService: '12 Jan 2024', nextService: '12 Jul 2024', cost: '₹45,000' },
-        { id: 2, name: 'Diesel Generator 150kVA', category: 'GENERATOR', location: 'Utility Yard', status: 'MAINTENANCE_DUE', lastService: '05 Aug 2023', nextService: '05 Feb 2024', cost: '₹12,40,000' },
-        { id: 3, name: 'Schindler Elevator', category: 'LIFT', location: 'Wing B', status: 'REPAIR_REQUIRED', lastService: '20 Dec 2023', nextService: '20 Jan 2024', cost: '₹18,00,000' },
-        { id: 4, name: 'CCTV Network (16 Cam)', category: 'CCTV', location: 'Perimeter', status: 'HEALTHY', lastService: '01 Nov 2023', nextService: '01 May 2024', cost: '₹85,000' },
-    ];
+    const [assets, setAssets] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+
+    useEffect(() => {
+        fetchAssets();
+    }, []);
+
+    const fetchAssets = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get('/assets');
+            setAssets(res.data || []);
+        } catch (err) {
+            console.error('Failed to fetch assets', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const [formData, setFormData] = useState({ name: '', category: 'ELECTRONICS', location: '', cost: '', nextService: '' });
+
+    const handleAdd = async (e) => {
+        e.preventDefault();
+        try {
+            let formattedDate = formData.nextService;
+            if (formData.nextService) {
+                // Ensure it's passed as YYYY-MM-DD or handled by backend, frontend format fits
+                const d = new Date(formData.nextService);
+                formattedDate = formData.nextService;
+            }
+
+            const res = await api.post('/assets', {
+                name: formData.name,
+                category: formData.category,
+                location: formData.location,
+                cost: formData.cost,
+                nextService: formattedDate
+            });
+            setAssets([res.data, ...assets]);
+            setShowModal(false);
+            setFormData({ name: '', category: 'ELECTRONICS', location: '', cost: '', nextService: '' });
+        } catch (err) {
+            console.error('Failed to add asset', err);
+            alert('Failed to save asset');
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -40,17 +88,17 @@ const Assets = () => {
                     </h1>
                     <p className="text-muted">Lifecycle management and maintenance tracking for society property</p>
                 </div>
-                <button className="btn btn-primary">
+                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                     <Plus size={18} /> Add Asset
                 </button>
             </header>
 
             <div className="grid grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: 'Total Assets', val: '₹42.5L', sub: 'In Value', icon: <TrendingDown /> },
-                    { label: 'Pending Service', val: '04', sub: 'Urgent', icon: <Wrench /> },
-                    { label: 'In Warranty', val: '86%', sub: 'Coverage', icon: <ShieldCheck /> },
-                    { label: 'Audited', val: 'Jan 24', sub: 'Last Check', icon: <History /> },
+                    { label: 'Total Assets', val: '₹0', sub: 'In Value', icon: <TrendingDown /> },
+                    { label: 'Pending Service', val: '00', sub: 'Urgent', icon: <Wrench /> },
+                    { label: 'In Warranty', val: '0%', sub: 'Coverage', icon: <ShieldCheck /> },
+                    { label: 'Audited', val: 'N/A', sub: 'Last Check', icon: <History /> },
                 ].map((s, i) => (
                     <div key={i} className="glass-card">
                         <div className="text-primary mb-3">{s.icon}</div>
@@ -119,6 +167,57 @@ const Assets = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Add Asset Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+                    <div className="glass-card w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="absolute right-4 top-4 p-2 hover:bg-surface-light rounded-full transition-colors text-muted"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h2 className="text-2xl font-bold mb-6 gradient-text">Add New Asset</h2>
+
+                        <form onSubmit={handleAdd} className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Asset Name</label>
+                                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Lobby AC" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Category</label>
+                                    <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm">
+                                        <option value="ELECTRONICS">Electronics</option>
+                                        <option value="MECHANICAL">Mechanical/Pump</option>
+                                        <option value="FURNITURE">Furniture</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Location</label>
+                                    <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="e.g. Club House" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Purchase Cost (₹)</label>
+                                    <input type="number" value={formData.cost} onChange={(e) => setFormData({ ...formData, cost: e.target.value })} placeholder="0.00" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Next Service Due</label>
+                                    <input type="date" value={formData.nextService} onChange={(e) => setFormData({ ...formData, nextService: e.target.value })} className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full btn btn-primary py-4 mt-4 shadow-lg shadow-primary/20">
+                                Save Asset
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

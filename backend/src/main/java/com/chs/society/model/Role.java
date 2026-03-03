@@ -3,6 +3,8 @@ package com.chs.society.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "roles")
@@ -22,4 +24,13 @@ public class Role {
     private String name;
 
     private String description;
+
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "role_permissions",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions = new HashSet<>();
 }

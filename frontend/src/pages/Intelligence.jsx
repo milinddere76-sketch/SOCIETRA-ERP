@@ -11,38 +11,7 @@ import {
 } from 'lucide-react';
 
 const Intelligence = () => {
-    const predictions = [
-        {
-            id: 1,
-            unit: 'C-504',
-            member: 'Priya Verma',
-            dues: '₹42,500',
-            risk: 0.88,
-            level: 'CRITICAL',
-            factors: ['3 consecutive months unpaid', 'Ignored 2 WhatsApp reminders'],
-            action: 'Legal Notice'
-        },
-        {
-            id: 2,
-            unit: 'A-102',
-            member: 'Vikram Singh',
-            dues: '₹12,400',
-            risk: 0.65,
-            level: 'HIGH',
-            factors: ['Increasing trend in delay', 'Partial payments only'],
-            action: 'Committee Meeting'
-        },
-        {
-            id: 3,
-            unit: 'B-703',
-            member: 'Sanjay Oak',
-            dues: '₹8,200',
-            risk: 0.42,
-            level: 'MEDIUM',
-            factors: ['Historically pays in 45 days'],
-            action: 'Soft Reminder'
-        }
-    ];
+    const [predictions, setPredictions] = useState([]);
 
     return (
         <div className="intelligence-page">
@@ -64,26 +33,26 @@ const Intelligence = () => {
                 <div className="glass-card border-l-4 border-error">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-error/10 rounded-lg text-error"><UserX size={20} /></div>
-                        <span className="text-xs font-bold text-error">+2 this month</span>
+                        <span className="text-xs font-bold text-error">+0 this month</span>
                     </div>
                     <p className="text-sm text-muted">High Risk Units</p>
-                    <h2 className="text-3xl font-bold">08</h2>
+                    <h2 className="text-3xl font-bold">00</h2>
                 </div>
                 <div className="glass-card border-l-4 border-primary">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-primary/10 rounded-lg text-primary"><TrendingUp size={20} /></div>
-                        <span className="text-xs font-bold text-primary">84% Accuracy</span>
+                        <span className="text-xs font-bold text-primary">N/A Accuracy</span>
                     </div>
                     <p className="text-sm text-muted">Predicted Recovery</p>
-                    <h2 className="text-3xl font-bold">₹2.4L</h2>
+                    <h2 className="text-3xl font-bold">₹0</h2>
                 </div>
                 <div className="glass-card border-l-4 border-success">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-success/10 rounded-lg text-success"><ShieldAlert size={20} /></div>
-                        <span className="text-xs font-bold text-success">Optimized</span>
+                        <span className="text-xs font-bold text-success">Standby</span>
                     </div>
                     <p className="text-sm text-muted">Success Rate</p>
-                    <h2 className="text-3xl font-bold">92%</h2>
+                    <h2 className="text-3xl font-bold">0%</h2>
                 </div>
             </div>
 
@@ -148,7 +117,7 @@ const Intelligence = () => {
                     </div>
                     <div>
                         <h4 className="font-bold">AI Insight</h4>
-                        <p className="text-sm text-muted">Units in 'Wing C' show a 12% higher probability of delay this quarter compared to last year.</p>
+                        <p className="text-sm text-muted">Awaiting consistent collection data to generate predictive recovery insights.</p>
                     </div>
                 </div>
                 <button className="btn btn-outline btn-sm">View Full Analysis</button>

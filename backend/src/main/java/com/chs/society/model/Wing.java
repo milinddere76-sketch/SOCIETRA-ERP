@@ -12,6 +12,7 @@ import lombok.*;
 @Builder
 public class Wing extends BaseEntity {
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "society_id", nullable = false)
     private Society society;

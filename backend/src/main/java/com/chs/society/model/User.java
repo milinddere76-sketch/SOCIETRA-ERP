@@ -27,16 +27,19 @@ public class User extends BaseEntity {
     @Column(unique = true)
     private String phone;
 
+    private String memberId;
+    private String address;
+    private String profilePhoto;
+
     @Column(nullable = false)
     private String password;
 
+    @Builder.Default
     private boolean isActive = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
 }

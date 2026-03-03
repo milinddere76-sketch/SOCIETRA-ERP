@@ -8,35 +8,21 @@ import com.chs.society.security.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@lombok.RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final OtpTokenRepository otpTokenRepository;
     private final JwtUtils jwtUtils;
-    private final WhatsAppNotificationService whatsAppService;
-    private final PasswordEncoder passwordEncoder;
-
-    public AuthService(AuthenticationManager authenticationManager, 
-                       UserRepository userRepository, 
-                       OtpTokenRepository otpTokenRepository, 
-                       JwtUtils jwtUtils, 
-                       WhatsAppNotificationService whatsAppService,
-                       PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.otpTokenRepository = otpTokenRepository;
-        this.jwtUtils = jwtUtils;
-        this.whatsAppService = whatsAppService;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public LoginResponse initiateLogin(String email, String password) {
         Authentication authentication = authenticationManager.authenticate(
@@ -44,33 +30,15 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email).orElseThrow();
 
-        // Check if user is Super Admin
-        boolean isSuperAdmin = user.getRoles().stream()
-                .anyMatch(role -> role.getName().equals("ROLE_SUPER_ADMIN"));
+        String primaryRole = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("ROLE_MEMBER");
 
-        if (isSuperAdmin) {
-            // Super Admin bypasses OTP
-            String token = jwtUtils.generateJwtToken(authentication);
-            return LoginResponse.builder()
-                    .token(token)
-                    .requiresOtp(false)
-                    .build();
-        }
-
-        // Generate and send OTP
-        String otp = String.format("%06d", new Random().nextInt(1000000));
-        OtpToken otpToken = OtpToken.builder()
-                .email(email)
-                .otp(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .build();
-        otpTokenRepository.save(otpToken);
-
-        whatsAppService.sendOtp(user.getPhone(), otp);
-
+        // Temporary local development OTP bypass for all users
+        String token = jwtUtils.generateJwtToken(authentication);
         return LoginResponse.builder()
-                .requiresOtp(true)
+                .token(token)
+                .requiresOtp(false)
                 .email(email)
+                .role(primaryRole)
                 .build();
     }
 
@@ -89,12 +57,42 @@ public class AuthService {
         otpToken.setUsed(true);
         otpTokenRepository.save(otpToken);
 
-        // Fetch user again to generate token (context would be lost in stateless multi-call)
+        // Fetch user again to generate token (context would be lost in stateless
+        // multi-call)
         User user = userRepository.findByEmail(email).orElseThrow();
-        
+
         // This is a simplified bypass since we verified the creds in step 1
         // In a real app, you'd handle the Authentication object better
         return jwtUtils.generateJwtTokenForUser(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getCurrentUserProfile(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Map<String, Object> response = new HashMap<>();
+        response.put("email", user.getEmail());
+        response.put("firstName", user.getFirstName());
+        response.put("lastName", user.getLastName());
+        response.put("phone", user.getPhone());
+
+        String primaryRole = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("ROLE_MEMBER");
+        response.put("role", primaryRole);
+
+        if (user.getSociety() != null) {
+            Map<String, Object> societyData = new HashMap<>();
+            societyData.put("name", user.getSociety().getName());
+            societyData.put("address", user.getSociety().getAddress());
+            societyData.put("registrationNumber", user.getSociety().getRegistrationNumber());
+            societyData.put("adminEmail", user.getSociety().getAdminEmail());
+            societyData.put("adminMobile", user.getSociety().getAdminMobile());
+            societyData.put("city", user.getSociety().getCity());
+            societyData.put("pincode", user.getSociety().getPincode());
+            societyData.put("state", user.getSociety().getState());
+            societyData.put("country", user.getSociety().getCountry());
+            response.put("society", societyData);
+        }
+
+        return response;
     }
 
     @lombok.Data
@@ -103,5 +101,6 @@ public class AuthService {
         private String token;
         private boolean requiresOtp;
         private String email;
+        private String role;
     }
 }

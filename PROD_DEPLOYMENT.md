@@ -38,28 +38,35 @@ The project includes a GitHub Actions workflow in `.github/workflows/ci-cd.yml`.
 ## 6. SSL/TLS Setup (HTTPS)
 For production, you **must** use HTTPS.
 
-### Option A: Nginx Proxy Manager (Recommended)
-Add this to your `docker-compose.prod.yml`:
-```yaml
-  npm:
-    image: 'jc21/nginx-proxy-manager:latest'
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-```
-1. Access UI at port 81 (Default login: `admin@example.com` / `changeme`).
-2. Add a Proxy Host pointing to `societra-frontend-prod` on port 80.
-3. Enable SSL and request a Let's Encrypt certificate.
+### Option A: Nginx Proxy Manager (Included in Compose)
+I have added Nginx Proxy Manager (NPM) to the production stack. It provides a simple web interface to manage SSL.
 
-### Option B: Manual Certbot
-1. Stop the containers.
-2. Run Certbot to generate certificates.
-3. Mount the certificates into the `frontend` container and update `nginx.conf.prod` to listen on `443`.
+1. **Deploy the stack**:
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+2. **Access the Admin UI**:
+   Open `http://your-server-ip:81`
+   - **Default Login**: `admin@example.com`
+   - **Default Password**: `changeme`
+   *(You will be asked to change these on first login)*
+
+3. **Add a Proxy Host**:
+   - Go to **Hosts** -> **Proxy Hosts** -> **Add Proxy Host**.
+   - **Domain Names**: Enter your domain (e.g., `society.yourdomain.com`).
+   - **Scheme**: `http`
+   - **Forward Name/IP**: `societra-frontend-prod`
+   - **Forward Port**: `80`
+   - **Block Common Exploits**: Enable.
+   - **Websockets Support**: Enable (for future-proofing).
+
+4. **Add SSL**:
+   - Click the **SSL** tab in the same window.
+   - Select **Request a new SSL Certificate**.
+   - Enable **Force SSL** and **HTTP/2 Support**.
+   - Agree to Let's Encrypt TOS and click **Save**.
+
+Your site is now live at `https://society.yourdomain.com`!
 
 ## 7. Security Recommendations
 - **SSL/TLS**: Always use HTTP redirection to HTTPS.

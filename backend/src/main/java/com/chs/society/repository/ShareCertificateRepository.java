@@ -10,4 +10,7 @@ import java.util.UUID;
 @Repository
 public interface ShareCertificateRepository extends JpaRepository<ShareCertificate, UUID> {
     List<ShareCertificate> findBySocietyId(UUID societyId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteBySocietyId(UUID societyId);
 }

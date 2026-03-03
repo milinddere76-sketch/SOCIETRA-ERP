@@ -18,7 +18,7 @@ public class SubscriptionService {
     }
 
     public void upgradePlan(UUID societyId, SubscriptionPlan newPlan) {
-        Society society = societyRepository.findById(societyId)
+        Society society = societyRepository.findById(java.util.Objects.requireNonNull(societyId))
                 .orElseThrow(() -> new RuntimeException("Society not found"));
 
         society.setSubscriptionPlan(newPlan);
@@ -27,7 +27,8 @@ public class SubscriptionService {
     }
 
     public boolean isSubscriptionActive(Society society) {
-        if (society.getSubscriptionExpiry() == null) return false;
+        if (society.getSubscriptionExpiry() == null)
+            return false;
         return society.getSubscriptionExpiry().isAfter(LocalDate.now());
     }
 

@@ -24,10 +24,8 @@ public class PredictionService {
     }
 
     public List<DefaulterPredictionDTO> getDefaulterPredictions(UUID societyId) {
-        return unitRepository.findBySocietyId(societyId).stream()
+        List<DefaulterPredictionDTO> predictions = unitRepository.findBySocietyId(societyId).stream()
                 .map(unit -> {
-                    // Simulated heuristic-based AI logic
-                    // In a real scenario, this would call a Python/ML service or use a loaded ML model
                     List<MaintenanceBill> history = billRepository.findTop12ByUnitIdOrderByCreatedAtDesc(unit.getId());
                     
                     double riskScore = calculateHeuristicRisk(history);
@@ -45,9 +43,11 @@ public class PredictionService {
                             .recommendedAction(getRecommendation(riskLevel))
                             .build();
                 })
-                .filter(p -> p.getRiskScore() > 0.3) // Only show units with some risk
-                .sorted((a, b) -> Double.compare(b.getRiskScore(), a.getRiskScore()))
+                .filter(p -> p.getRiskScore() > 0.3)
                 .collect(Collectors.toList());
+
+        predictions.sort((a, b) -> Double.compare(b.getRiskScore(), a.getRiskScore()));
+        return predictions;
     }
 
     private double calculateHeuristicRisk(List<MaintenanceBill> history) {

@@ -27,11 +27,16 @@ public class ShareCertificate extends BaseEntity {
     private Integer sharesFrom;
     private Integer sharesTo;
     private Integer totalShares;
-    
+    private java.math.BigDecimal shareValue;
+
     private LocalDate issueDate;
-    
+
     @Column(nullable = false)
     private String memberName;
 
+    private String chairmanName;
+    private String secretaryName;
+
+    @Builder.Default
     private String status = "ISSUED"; // ISSUED, CANCELLED, TRANSFERRED
 }

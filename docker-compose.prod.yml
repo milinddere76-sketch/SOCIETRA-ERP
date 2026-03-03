@@ -57,11 +57,26 @@ services:
         - NGINX_CONF=nginx.conf.prod
     container_name: societra-frontend-prod
     restart: always
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
+    # Port 80 is now handled by the Nginx Proxy Manager (NPM) below
+    expose:
+      - 80
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - societra-net-prod
+
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: societra-proxy-prod
+    restart: always
+    ports:
+      - '80:80' # Public HTTP
+      - '443:443' # Public HTTPS
+      - '81:81' # Admin UI
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/letsencrypt:/etc/letsencrypt
     networks:
       - societra-net-prod
 

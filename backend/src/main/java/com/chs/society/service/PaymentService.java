@@ -1,26 +1,24 @@
 package com.chs.society.service;
 
+import com.chs.society.config.props.RazorpayProperties;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
-    @Value("${razorpay.key.id:rzp_test_default}")
-    private String razorpayKeyId;
-
-    @Value("${razorpay.key.secret:rzp_test_secret_default}")
-    private String razorpayKeySecret;
+    private final RazorpayProperties razorpayProperties;
 
     public String createOrder(BigDecimal amount, UUID billingId) throws RazorpayException {
-        RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+        RazorpayClient razorpay = new RazorpayClient(razorpayProperties.getId(), razorpayProperties.getSecret());
 
         JSONObject orderRequest = new JSONObject();
         // Razorpay expects amount in paise (1 INR = 100 paise)

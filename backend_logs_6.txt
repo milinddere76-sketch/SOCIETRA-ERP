@@ -1,0 +1,52 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.2)
+
+2026-03-02T09:32:21.053Z  INFO 1 --- [society-app] [           main] com.chs.society.SocietyApplication       : Starting SocietyApplication v0.0.1-SNAPSHOT using Java 17.0.18 with PID 1 (/app/app.jar started by root in /app)
+2026-03-02T09:32:21.058Z DEBUG 1 --- [society-app] [           main] com.chs.society.SocietyApplication       : Running with Spring Boot v3.2.2, Spring v6.1.3
+2026-03-02T09:32:21.060Z  INFO 1 --- [society-app] [           main] com.chs.society.SocietyApplication       : The following 1 profile is active: "dev"
+2026-03-02T09:32:23.127Z  INFO 1 --- [society-app] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-02T09:32:23.318Z  INFO 1 --- [society-app] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 176 ms. Found 18 JPA repository interfaces.
+2026-03-02T09:32:24.330Z  INFO 1 --- [society-app] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-03-02T09:32:24.347Z  INFO 1 --- [society-app] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-02T09:32:24.348Z  INFO 1 --- [society-app] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.18]
+2026-03-02T09:32:24.393Z  INFO 1 --- [society-app] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-02T09:32:24.395Z  INFO 1 --- [society-app] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3128 ms
+2026-03-02T09:32:24.452Z  INFO 1 --- [society-app] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-02T09:32:25.053Z  INFO 1 --- [society-app] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@196624bf
+2026-03-02T09:32:25.056Z  INFO 1 --- [society-app] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-02T09:32:25.073Z  INFO 1 --- [society-app] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://db:5432/chs_society'
+2026-03-02T09:32:25.285Z  INFO 1 --- [society-app] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-02T09:32:25.409Z  INFO 1 --- [society-app] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+2026-03-02T09:32:25.485Z  INFO 1 --- [society-app] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-02T09:32:26.043Z  INFO 1 --- [society-app] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-02T09:32:26.130Z  WARN 1 --- [society-app] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-02T09:32:29.895Z  INFO 1 --- [society-app] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-02T09:32:30.905Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:30.905Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_6rkyqcc99wbiai3aux8yo8aw7" of relation "maintenance_bills" does not exist, skipping
+2026-03-02T09:32:30.938Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:30.938Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_pcx9erictj96trruxmalerx5w" of relation "maintenance_configs" does not exist, skipping
+2026-03-02T09:32:30.961Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:30.961Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_pnvtwliis6p05pn6i3ndjrqt2" of relation "permissions" does not exist, skipping
+2026-03-02T09:32:30.986Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:30.986Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_ofx66keruapi6vyqpv6f2or37" of relation "roles" does not exist, skipping
+2026-03-02T09:32:31.009Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:31.010Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_enlh5s2clcj4n46kw2rbk2ejk" of relation "share_certificates" does not exist, skipping
+2026-03-02T09:32:31.031Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:31.031Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_c99na8wgd6o20dbyw6ncctcx2" of relation "societies" does not exist, skipping
+2026-03-02T09:32:31.055Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:31.055Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_6dotkott2kjsp8vw4d0m25fb7" of relation "users" does not exist, skipping
+2026-03-02T09:32:31.082Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-02T09:32:31.082Z  WARN 1 --- [society-app] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : constraint "uk_du5v5sr43g5bfnji4vb8hg5s3" of relation "users" does not exist, skipping
+2026-03-02T09:32:31.520Z  INFO 1 --- [society-app] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-02T09:32:32.076Z DEBUG 1 --- [society-app] [           main] c.c.s.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2026-03-02T09:32:32.174Z  INFO 1 --- [society-app] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-02T09:32:33.432Z  WARN 1 --- [society-app] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-02T09:32:33.835Z  INFO 1 --- [society-app] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1b3fff29, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@4f90b4c9, org.springframework.security.web.context.SecurityContextHolderFilter@2cde0397, org.springframework.security.web.header.HeaderWriterFilter@cf9a1f1, org.springframework.web.filter.CorsFilter@16fc3be9, org.springframework.security.web.authentication.logout.LogoutFilter@70cc0601, com.chs.society.security.JwtAuthenticationFilter@3431cb1f, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@308bd473, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7d0ae3d1, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@5afd2f4e, org.springframework.security.web.session.SessionManagementFilter@77d771a2, org.springframework.security.web.access.ExceptionTranslationFilter@438f205c, org.springframework.security.web.access.intercept.AuthorizationFilter@286e2b71]
+2026-03-02T09:32:34.192Z  INFO 1 --- [society-app] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-03-02T09:32:34.204Z  INFO 1 --- [society-app] [           main] com.chs.society.SocietyApplication       : Started SocietyApplication in 14.832 seconds (process running for 16.269)

@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "maintenance_bills")
@@ -33,6 +35,27 @@ public class MaintenanceBill extends BaseEntity {
     private BigDecimal interestAmount;
     private BigDecimal totalAmount;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MaintenanceBillItem> items = new ArrayList<>();
+
+    @Builder.Default
+    private Double repairsAndMaintenance = 0.0;
+    @Builder.Default
+    private Double sinkingFund = 0.0;
+    @Builder.Default
+    private Double serviceCharges = 0.0;
+    @Builder.Default
+    private Double commonUtilityCharges = 0.0;
+    @Builder.Default
+    private Double statutoryFees = 0.0;
+    @Builder.Default
+    private Double parkingCharges = 0.0;
+    @Builder.Default
+    private Double miscellaneousCharges = 0.0;
+    @Builder.Default
+    private Double otherCharges = 0.0;
+
     private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
@@ -40,5 +63,37 @@ public class MaintenanceBill extends BaseEntity {
 
     public enum BillStatus {
         UNPAID, PARTIAL, PAID
+    }
+
+    public Double getRepairsAndMaintenance() {
+        return repairsAndMaintenance;
+    }
+
+    public Double getSinkingFund() {
+        return sinkingFund;
+    }
+
+    public Double getServiceCharges() {
+        return serviceCharges;
+    }
+
+    public Double getCommonUtilityCharges() {
+        return commonUtilityCharges;
+    }
+
+    public Double getStatutoryFees() {
+        return statutoryFees;
+    }
+
+    public Double getParkingCharges() {
+        return parkingCharges;
+    }
+
+    public Double getMiscellaneousCharges() {
+        return miscellaneousCharges;
+    }
+
+    public Double getOtherCharges() {
+        return otherCharges;
     }
 }

@@ -3,6 +3,7 @@ package com.chs.society.controller;
 import com.chs.society.service.AuthService;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,6 +26,14 @@ public class AuthController {
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
         String token = authService.verifyOtpAndGenerateToken(request.getEmail(), request.getOtp());
         return ResponseEntity.ok(new JwtResponse(token));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(authService.getCurrentUserProfile(authentication.getName()));
     }
 
     @Data

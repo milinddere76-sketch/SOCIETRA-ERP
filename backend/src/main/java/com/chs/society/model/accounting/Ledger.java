@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 @Builder
 public class Ledger extends BaseEntity {
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "society_id")
     private Society society;
@@ -32,7 +33,11 @@ public class Ledger extends BaseEntity {
     private BigDecimal openingBalance = BigDecimal.ZERO;
 
     @Builder.Default
+    private java.time.LocalDate openingBalanceDate = null;
+
+    @Builder.Default
     private BigDecimal currentBalance = BigDecimal.ZERO;
 
+    @Builder.Default
     private boolean isSystemDefined = false;
 }

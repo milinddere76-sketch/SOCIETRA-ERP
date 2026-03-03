@@ -1,28 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+    Users,
+    Car,
+    Package,
+    Phone,
+    Clock,
+    CheckCircle2,
+    XCircle,
+    Plus,
+    X,
     Shield,
     UserPlus,
-    Clock,
-    MapPin,
-    Phone,
     Search,
-    Filter,
-    Package,
-    Car,
-    Users,
+    MapPin,
     LogOut
 } from 'lucide-react';
+import api from '../api';
 
 const Security = () => {
     const [activeTab, setActiveTab] = useState('current');
+    const [showModal, setShowModal] = useState(false);
 
-    const visitors = [
-        { id: 1, name: 'Vikram Mehta', phone: '+91 98200 12345', unit: 'A-402', type: 'GUEST', time: '10:15 AM', status: 'IN' },
-        { id: 2, name: 'Zomato Delivery', phone: '+91 90000 55555', unit: 'B-1102', type: 'DELIVERY', time: '10:45 AM', status: 'IN' },
-        { id: 3, name: 'Regular Staff', phone: '+91 98888 77777', unit: 'General', type: 'STAFF', time: '08:00 AM', status: 'IN' },
-        { id: 4, name: 'Amit Kumar', phone: '+91 97777 66666', unit: 'C-201', type: 'CAB', time: '09:30 AM', status: 'OUT', exitTime: '10:05 AM' },
-    ];
+    const [visitors, setVisitors] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        fetchVisitors();
+    }, []);
+
+    const fetchVisitors = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get('/security/visitors');
+            setVisitors(res.data);
+        } catch (err) {
+            console.error('Failed to fetch visitors', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const [formData, setFormData] = useState({ name: '', phone: '', type: 'GUEST', unit: '' });
+
+    const handleAdd = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.post('/security/visitors', {
+                name: formData.name,
+                phone: formData.phone,
+                unit: formData.unit,
+                type: formData.type
+            });
+            setVisitors([res.data, ...visitors]);
+            setShowModal(false);
+            setFormData({ name: '', phone: '', type: 'GUEST', unit: '' });
+        } catch (err) {
+            console.error('Failed to add visitor', err);
+            alert('Failed to logging entry');
+        }
+    };
 
     const getTypeIcon = (type) => {
         switch (type) {
@@ -42,17 +79,17 @@ const Security = () => {
                     </h1>
                     <p className="text-muted">Real-time visitor tracking and gate management</p>
                 </div>
-                <button className="btn btn-primary">
+                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                     <UserPlus size={18} /> New Entry
                 </button>
             </header>
 
             <div className="grid grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: 'Inside Society', val: '12', color: 'text-success' },
-                    { label: 'Expected Today', val: '45', color: 'text-primary' },
-                    { label: 'Delivery/Service', val: '08', color: 'text-secondary' },
-                    { label: 'Staff Present', val: '22', color: 'text-accent' },
+                    { label: 'Inside Society', val: '00', color: 'text-success' },
+                    { label: 'Expected Today', val: '00', color: 'text-primary' },
+                    { label: 'Delivery/Service', val: '00', color: 'text-secondary' },
+                    { label: 'Staff Present', val: '00', color: 'text-accent' },
                 ].map((stat, i) => (
                     <div key={i} className="glass-card">
                         <p className="text-xs text-muted font-bold uppercase">{stat.label}</p>
@@ -138,6 +175,51 @@ const Security = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Sub-window modal for Security Entry */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+                    <div className="glass-card w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="absolute right-4 top-4 p-2 hover:bg-surface-light rounded-full transition-colors text-muted"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h2 className="text-2xl font-bold mb-6 gradient-text">New Visitor Entry</h2>
+
+                        <form onSubmit={handleAdd} className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Visitor Name</label>
+                                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Rahul Sharma" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Phone No</label>
+                                    <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+91" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Visitor Type</label>
+                                    <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm">
+                                        <option value="GUEST">Guest</option>
+                                        <option value="DELIVERY">Delivery</option>
+                                        <option value="CAB">Cab / Taxi</option>
+                                        <option value="STAFF">Service Staff</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Unit / Destination</label>
+                                <input type="text" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} placeholder="e.g. A-102" className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm" required />
+                            </div>
+                            <button type="submit" className="w-full btn btn-primary py-4 mt-4 shadow-lg shadow-primary/20">
+                                Log Entry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

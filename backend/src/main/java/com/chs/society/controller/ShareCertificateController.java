@@ -25,21 +25,31 @@ public class ShareCertificateController {
         return certificateService.getCertificatesBySociety(societyId);
     }
 
+    @GetMapping("/society")
+    public List<ShareCertificate> getCertificatesByAuthenticatedSociety(
+            org.springframework.security.core.Authentication auth) {
+        return certificateService.getCertificatesBySocietyMember(auth.getName());
+    }
+
     @PostMapping("/generate")
-    public ShareCertificate generate(@RequestParam UUID unitId, 
-                                     @RequestParam String memberName,
-                                     @RequestParam Integer startNo,
-                                     @RequestParam Integer count) {
-        return certificateService.generateForUnit(unitId, memberName, startNo, count);
+    public ShareCertificate generate(@RequestParam UUID unitId,
+            @RequestParam String memberName,
+            @RequestParam Integer startNo,
+            @RequestParam Integer count,
+            @RequestParam java.math.BigDecimal shareValue,
+            @RequestParam(required = false) String chairmanName,
+            @RequestParam(required = false) String secretaryName) {
+        return certificateService.generateForUnit(unitId, memberName, startNo, count, shareValue, chairmanName,
+                secretaryName);
     }
 
     @GetMapping("/{id}/download")
     public ResponseEntity<byte[]> download(@PathVariable UUID id) {
         byte[] pdf = certificateService.generatePdf(id);
-        
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=share_certificate.pdf")
-                .contentType(MediaType.APPLICATION_PDF)
+                .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_PDF))
                 .body(pdf);
     }
 }

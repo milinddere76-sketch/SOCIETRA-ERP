@@ -24,7 +24,9 @@ public class MeetingMinutes extends BaseEntity {
     private MeetingType type;
 
     private LocalDateTime meetingDate;
-    
+
+    private String venue;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -32,6 +34,12 @@ public class MeetingMinutes extends BaseEntity {
     private String minutesContent; // Detailed discussion points
 
     private String pdfUrl; // Path to signed PDF scan
+
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "meeting_attendance", joinColumns = @JoinColumn(name = "meeting_id"))
+    @Column(name = "user_id")
+    private java.util.List<java.util.UUID> attendanceIds = new java.util.ArrayList<>();
 
     @Builder.Default
     private String status = "DRAFT"; // DRAFT, PUBLISHED, ARCHIVED

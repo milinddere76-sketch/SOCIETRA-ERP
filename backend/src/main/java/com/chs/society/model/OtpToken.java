@@ -28,5 +28,6 @@ public class OtpToken {
     @Column(nullable = false)
     private LocalDateTime expiryTime;
 
+    @Builder.Default
     private boolean used = false;
 }

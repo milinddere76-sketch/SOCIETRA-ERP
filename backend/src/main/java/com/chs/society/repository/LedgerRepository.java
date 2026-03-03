@@ -10,4 +10,7 @@ import java.util.UUID;
 @Repository
 public interface LedgerRepository extends JpaRepository<Ledger, UUID> {
     List<Ledger> findBySocietyId(UUID societyId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteBySocietyId(UUID societyId);
 }

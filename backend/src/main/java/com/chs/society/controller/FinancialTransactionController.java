@@ -14,7 +14,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/accounting/transactions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = { "http://localhost:5173", "http://localhost:3000", "https://priyanshcreations.com",
+        "https://www.priyanshcreations.com" }, maxAge = 3600, allowCredentials = "true")
 public class FinancialTransactionController {
 
     private final FinancialTransactionService service;

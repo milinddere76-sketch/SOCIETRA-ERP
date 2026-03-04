@@ -83,8 +83,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: "SOCIETRA ERP v1.0.${{ github.run_number }}"
+          tag_name: apk-build-${{ github.run_number }}
+          name: "SOCIETRA ERP APK - Build ${{ github.run_number }}"
           body: |
             ## 📱 SOCIETRA ERP Mobile App
 
@@ -97,5 +97,6 @@ jobs:
             Backend: https://societra-erp-production.up.railway.app
           draft: false
           prerelease: false
+          fail_on_unmatched_files: false
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
           token: ${{ secrets.GITHUB_TOKEN }}

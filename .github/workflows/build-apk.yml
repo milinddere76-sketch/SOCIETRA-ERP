@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     name: Build SOCIETRA ERP APK
@@ -68,35 +71,30 @@ jobs:
 
       - name: Build Debug APK
         working-directory: frontend/android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK as artifact
+      - name: Upload APK as artifact (30 days)
         uses: actions/upload-artifact@v4
         with:
-          name: SOCIETRA-ERP-debug
+          name: SOCIETRA-ERP-debug-apk
           path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
         with:
           tag_name: apk-build-${{ github.run_number }}
           name: "SOCIETRA ERP APK - Build ${{ github.run_number }}"
           body: |
-            ## 📱 SOCIETRA ERP Mobile App
+            ## 📱 SOCIETRA ERP Mobile App — Build ${{ github.run_number }}
 
             ### ⬇️ Download & Install
-            1. Download **app-debug.apk** below
+            1. Download **app-debug.apk** from the Assets section below
             2. On your Android phone: **Settings → Security → Install Unknown Apps** → Enable
-            3. Open the APK → tap **Install**
+            3. Open the downloaded APK → tap **Install**
             4. Open **SOCIETRA ERP** ✅
 
-            Backend: https://societra-erp-production.up.railway.app
+            **Backend:** https://societra-erp-production.up.railway.app
           draft: false
           prerelease: false
-          fail_on_unmatched_files: false
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
-          token: ${{ secrets.GITHUB_TOKEN }}

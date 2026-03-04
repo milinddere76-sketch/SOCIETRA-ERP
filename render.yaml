@@ -29,10 +29,7 @@ services:
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: societra-backend
-          property: host
+        sync: false # Set to your backend URL (e.g., https://societra-backend.onrender.com)
     routes:
       - type: rewrite
         source: /*

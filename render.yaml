@@ -5,10 +5,10 @@ services:
     env: docker
     rootDir: backend
     dockerfilePath: Dockerfile
-    plan: free # Use 'free' for the free tier
+    plan: free
     envVars:
       - key: SPRING_DATASOURCE_URL
-        sync: false # Set manually in Render dashboard
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
         sync: false
       - key: SPRING_DATASOURCE_PASSWORD
@@ -24,9 +24,9 @@ services:
   - type: web
     name: societra-frontend
     runtime: static
+    rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    rootDir: frontend
     envVars:
       - key: VITE_API_URL
         fromService:
@@ -37,4 +37,3 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-

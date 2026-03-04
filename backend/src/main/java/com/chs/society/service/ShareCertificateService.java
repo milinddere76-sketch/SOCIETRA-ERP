@@ -70,4 +70,33 @@ public class ShareCertificateService {
                 .orElseThrow(() -> new RuntimeException("Certificate not found"));
         return pdfService.generateShareCertificatePdf(cert);
     }
+
+    @Transactional
+    public ShareCertificate updateCertificate(UUID id, UUID unitId, String memberName, Integer startNo, Integer count,
+            java.math.BigDecimal shareValue, String chairmanName, String secretaryName) {
+
+        ShareCertificate certificate = certificateRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        if (unitId != null && !certificate.getUnit().getId().equals(unitId)) {
+            Unit unit = unitRepository.findById(unitId).orElseThrow(() -> new RuntimeException("Unit not found"));
+            certificate.setUnit(unit);
+        }
+
+        certificate.setMemberName(memberName);
+        certificate.setSharesFrom(startNo);
+        certificate.setSharesTo(startNo + count - 1);
+        certificate.setTotalShares(count);
+        certificate.setShareValue(shareValue);
+        certificate.setChairmanName(chairmanName);
+        certificate.setSecretaryName(secretaryName);
+
+        return certificateRepository.save(certificate);
+    }
+
+    @Transactional
+    public void deleteCertificate(UUID id) {
+        certificateRepository.deleteById(id);
+    }
+
 }

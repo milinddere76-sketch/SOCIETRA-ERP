@@ -9,7 +9,10 @@ import {
     History,
     X,
     Printer,
-    FileCheck
+    FileCheck,
+    Edit,
+    Trash2,
+    Home, FileText, Building2, User, Hash, DollarSign, PenTool, MoreVertical
 } from 'lucide-react';
 
 const ShareCertificates = () => {
@@ -27,8 +30,10 @@ const ShareCertificates = () => {
 
     const [certificates, setCertificates] = useState([]);
     const [units, setUnits] = useState([]);
+    const [editingCertificate, setEditingCertificate] = useState(null);
     const [society, setSociety] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -45,7 +50,7 @@ const ShareCertificates = () => {
 
             // Fetch certificates
             try {
-                const certUrl = isSuperAdmin && selectedSocietyId ? `/certificates/society/${selectedSocietyId}` : '/certificates/society';
+                const certUrl = isSuperAdmin && selectedSocietyId ? `/ certificates / society / ${selectedSocietyId} ` : '/certificates/society';
                 const certRes = await api.get(certUrl);
                 console.log("Certificates fetched:", certRes.data?.length);
                 setCertificates(certRes.data || []);
@@ -56,7 +61,7 @@ const ShareCertificates = () => {
 
             // Fetch units
             try {
-                const unitUrl = isSuperAdmin && selectedSocietyId ? `/units?societyId=${selectedSocietyId}` : '/units';
+                const unitUrl = isSuperAdmin && selectedSocietyId ? `/ units ? societyId = ${selectedSocietyId} ` : '/units';
                 const unitRes = await api.get(unitUrl);
                 console.log("Units fetched:", unitRes.data?.length);
                 setUnits(unitRes.data || []);
@@ -67,7 +72,7 @@ const ShareCertificates = () => {
 
             // Fetch society details
             try {
-                const societyUrl = isSuperAdmin && selectedSocietyId ? `/society/settings/${selectedSocietyId}` : '/society/settings';
+                const societyUrl = isSuperAdmin && selectedSocietyId ? `/ society / settings / ${selectedSocietyId} ` : '/society/settings';
                 const societyRes = await api.get(societyUrl);
                 console.log("Society fetched:", societyRes.data?.name);
                 setSociety(societyRes.data);
@@ -90,7 +95,7 @@ const ShareCertificates = () => {
 
     const handleDownload = async (certId) => {
         try {
-            const response = await api.get(`/certificates/${certId}/download`, {
+            const response = await api.get(`/ certificates / ${certId}/download`, {
                 responseType: 'blob'
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -102,6 +107,7 @@ const ShareCertificates = () => {
             link.remove();
         } catch (err) {
             console.error('Download failed:', err);
+            alert('Failed to download certificate.');
         }
     };
 
@@ -183,29 +189,62 @@ const ShareCertificates = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Submitting certificate generation...", formData);
         try {
-            const res = await api.post(`/certificates/generate`, null, {
-                params: {
-                    unitId: formData.unitId,
-                    memberName: formData.memberName,
-                    startNo: formData.startNo,
-                    count: formData.shares,
-                    shareValue: formData.shareValue,
-                    chairmanName: formData.chairmanName,
-                    secretaryName: formData.secretaryName
-                }
-            });
-            console.log("Certificate generated successfully:", res.data);
-            setCertificates([res.data, ...certificates]);
+            if (editingCertificate) {
+                await api.put(`/certificates/${editingCertificate.id}`, null, {
+                    params: {
+                        unitId: formData.unitId,
+                        memberName: formData.memberName,
+                        startNo: formData.startNo,
+                        count: formData.shares,
+                        shareValue: formData.shareValue,
+                        chairmanName: formData.chairmanName,
+                        secretaryName: formData.secretaryName
+                    }
+                });
+                alert("Share Certificate updated successfully!");
+            } else {
+                await api.post(`/certificates/generate`, null, {
+                    params: {
+                        unitId: formData.unitId,
+                        memberName: formData.memberName,
+                        startNo: formData.startNo,
+                        count: formData.shares,
+                        shareValue: formData.shareValue,
+                        chairmanName: formData.chairmanName,
+                        secretaryName: formData.secretaryName
+                    }
+                });
+                alert("Share Certificate generated successfully!");
+            }
             setShowModal(false);
-            alert("Share Certificate generated successfully!");
+            setEditingCertificate(null);
+            fetchData();
         } catch (err) {
-            console.error('Failed to generate certificate:', err);
+            console.error('Failed to save certificate:', err);
             const errorMsg = err.response?.data?.message || err.message || "Unknown error";
-            alert(`Failed to generate certificate: ${errorMsg}`);
+            alert(`Failed to save certificate: ${errorMsg}`);
         }
     };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this share certificate? This action cannot be undone.")) return;
+        try {
+            await api.delete(`/certificates/${id}`);
+            fetchData();
+            alert("Share Certificate deleted successfully!");
+        } catch (err) {
+            console.error('Failed to delete certificate:', err);
+            const errorMsg = err.response?.data?.message || err.message || "Unknown error";
+            alert(`Failed to delete certificate: ${errorMsg}`);
+        }
+    };
+
+    const filteredCertificates = certificates.filter(cert =>
+        (cert.unit?.unitNumber || cert.unit || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cert.memberName || cert.member || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cert.certificateNumber || cert.certNo || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="certificates-page">
@@ -214,7 +253,19 @@ const ShareCertificates = () => {
                     <h1 className="text-3xl font-bold">Share Certificates</h1>
                     <p className="text-muted">Manage and issue statutory share certificates</p>
                 </div>
-                <button onClick={() => setShowModal(true)} className="btn btn-primary">
+                <button onClick={() => {
+                    setEditingCertificate(null);
+                    setFormData({
+                        unitId: units.length > 0 ? units[0].id : '',
+                        memberName: '',
+                        shares: 10,
+                        startNo: 1,
+                        shareValue: 100,
+                        chairmanName: '',
+                        secretaryName: ''
+                    });
+                    setShowModal(true);
+                }} className="btn btn-primary">
                     <Plus size={18} /> Issue Certificate
                 </button>
             </header>
@@ -243,16 +294,20 @@ const ShareCertificates = () => {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden">
+            <div className="glass-card">
                 <div className="flex justify-between items-center mb-6 px-2">
                     <h3 className="font-bold">Issued Certificates</h3>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-                        <input
-                            type="text"
-                            className="bg-glass border border-glass-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary"
-                            placeholder="Search by Unit or Name..."
-                        />
+                    <div className="flex gap-4">
+                        <div className="relative w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search certificates..."
+                                className="bg-glass border border-glass-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -263,40 +318,60 @@ const ShareCertificates = () => {
                             <th className="pb-4 font-medium">Member Name</th>
                             <th className="pb-4 font-medium">Certificate No.</th>
                             <th className="pb-4 font-medium">Shares</th>
+                            <th className="pb-4 font-medium">Share Value</th>
+                            <th className="pb-4 font-medium">Total Value</th>
                             <th className="pb-4 font-medium text-right px-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {certificates.map((cert) => (
+                        {filteredCertificates.map((cert) => (
                             <tr key={cert.id} className="border-b border-glass-border/50 hover:bg-glass/50 transition-colors">
                                 <td className="py-4 font-bold px-4">{cert.unit?.unitNumber || cert.unit}</td>
                                 <td className="py-4 text-sm">{cert.memberName || cert.member}</td>
                                 <td className="py-4 text-sm font-mono text-primary">{cert.certificateNumber || cert.certNo}</td>
-                                <td className="py-4 text-sm">
-                                    <div>{cert.totalShares || cert.shares} Shares (Rs. {cert.shareValue || 100} each)</div>
-                                    <div className="text-[10px] text-muted uppercase font-bold">Total: Rs. {((cert.totalShares || cert.shares) * (cert.shareValue || 100)).toLocaleString()}</div>
-                                </td>
+                                <td className="py-4 text-sm">{cert.totalShares || cert.shares}</td>
+                                <td className="py-4 text-sm">₹{cert.shareValue || 100}</td>
+                                <td className="py-4 text-sm font-black text-primary">₹{((cert.totalShares || cert.shares) * (cert.shareValue || 100)).toLocaleString()}</td>
                                 <td className="py-4 text-right px-4">
-                                    <div className="flex justify-end gap-2">
-                                        <button
-                                            onClick={() => setSelectedCert(cert)}
-                                            className="p-2 hover:bg-glass rounded-lg text-muted hover:text-white transition-colors"
-                                            title="Preview Certificate"
-                                        >
-                                            <Award size={18} />
-                                        </button>
+                                    <div className="flex justify-end items-center gap-2">
                                         <button
                                             onClick={() => handleDownload(cert.id)}
-                                            className="p-2 hover:bg-glass rounded-lg text-muted hover:text-white transition-colors" title="Download PDF"
+                                            className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-black uppercase whitespace-nowrap" title="Download PDF"
                                         >
-                                            <Download size={18} />
+                                            <Download size={14} /> View
                                         </button>
-                                        <button
-                                            onClick={() => window.print()}
-                                            className="p-2 hover:bg-glass rounded-lg text-muted hover:text-white transition-colors" title="Print"
-                                        >
-                                            <Printer size={18} />
-                                        </button>
+                                        <div className="relative group">
+                                            <button className="p-2 hover:bg-surface-light text-muted rounded-lg transition-colors">
+                                                <MoreVertical size={16} />
+                                            </button>
+                                            <div className="absolute right-0 top-full mt-1 w-40 bg-surface border border-glass-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col py-1 overflow-hidden">
+                                                <button
+                                                    onClick={() => setSelectedCert(cert)}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-surface-light flex items-center gap-3 text-muted hover:text-secondary transition-colors"
+                                                >
+                                                    <Award size={14} /> Preview
+                                                </button>
+                                                <button onClick={() => {
+                                                    setEditingCertificate(cert);
+                                                    setFormData({
+                                                        unitId: cert.unit?.id || (units.length > 0 ? units[0].id : ''),
+                                                        memberName: cert.memberName || '',
+                                                        shares: cert.totalShares || 1,
+                                                        startNo: cert.sharesFrom || 1,
+                                                        shareValue: cert.shareValue || 100,
+                                                        chairmanName: cert.chairmanName || '',
+                                                        secretaryName: cert.secretaryName || ''
+                                                    });
+                                                    setShowModal(true);
+                                                }} className="w-full px-4 py-2 text-left text-sm hover:bg-surface-light flex items-center gap-3 text-muted hover:text-primary transition-colors">
+                                                    <Edit size={14} /> Edit
+                                                </button>
+                                                <div className="h-px bg-glass-border my-1"></div>
+                                                <button onClick={() => handleDelete(cert.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-error/10 flex items-center gap-3 text-error transition-colors">
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -375,7 +450,7 @@ const ShareCertificates = () => {
                             className="glass-card w-full max-w-lg relative z-10"
                         >
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold">Issue New Share Certificate</h3>
+                                <h3 className="text-xl font-bold">{editingCertificate ? 'Edit Share Certificate' : 'Issue New Share Certificate'}</h3>
                                 <X className="cursor-pointer text-muted hover:text-white" onClick={() => setShowModal(false)} />
                             </div>
                             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -464,7 +539,9 @@ const ShareCertificates = () => {
                                     </div>
                                 </div>
                                 <div className="pt-4">
-                                    <button type="submit" className="btn btn-primary w-full">Issue Certificate</button>
+                                    <button type="submit" className="w-full btn btn-primary py-4 mt-8 shadow-lg shadow-primary/20">
+                                        {editingCertificate ? 'Update Certificate' : 'Generate Certificate'}
+                                    </button>
                                 </div>
                             </form>
                         </motion.div>

@@ -38,6 +38,24 @@ public class BillingService {
     }
 
     @Transactional
+    public void deleteBill(String billId, String adminEmail) {
+        com.chs.society.model.User user = userRepository.findByEmail(adminEmail).orElseThrow();
+        com.chs.society.model.Society society = user.getSociety();
+        if (society == null) {
+            throw new RuntimeException("Admin does not belong to a society.");
+        }
+
+        MaintenanceBill bill = billRepository.findById(java.util.UUID.fromString(billId))
+                .orElseThrow(() -> new RuntimeException("Bill not found"));
+
+        if (!bill.getSociety().getId().equals(society.getId())) {
+            throw new RuntimeException("Unauthorized: Cannot delete bills from another society");
+        }
+
+        billRepository.delete(bill);
+    }
+
+    @Transactional
     public void generateBillsForSociety(String adminEmail, String billingMonth, LocalDate generationDate,
             LocalDate dueDate) {
         com.chs.society.model.User user = userRepository.findByEmail(adminEmail).orElseThrow();

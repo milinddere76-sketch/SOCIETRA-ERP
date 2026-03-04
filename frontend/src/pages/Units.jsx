@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Plus, Search, Filter, X } from 'lucide-react';
+import { Home, Plus, Search, Filter, X, Edit, Trash2, MoreVertical } from 'lucide-react';
 import api from '../api';
 
 const Units = () => {
     const [units, setUnits] = useState([]);
     const [wings, setWings] = useState([]);
+    const [members, setMembers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [editingUnit, setEditingUnit] = useState(null);
 
     const [formData, setFormData] = useState({
         unitNumber: '',
         unitType: '2BHK',
         areaSqft: '',
+        ownerId: '',
         ownerName: '',
         occupied: true,
         wingId: ''
@@ -25,12 +28,14 @@ const Units = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [unitRes, wingRes] = await Promise.all([
+            const [unitRes, wingRes, memberRes] = await Promise.all([
                 api.get('/units'),
-                api.get('/units/wings')
+                api.get('/units/wings'),
+                api.get('/society/users')
             ]);
             setUnits(unitRes.data);
             setWings(wingRes.data);
+            setMembers(memberRes.data);
             if (wingRes.data.length > 0) {
                 setFormData(prev => ({ ...prev, wingId: wingRes.data[0].id }));
             }
@@ -47,24 +52,42 @@ const Units = () => {
             // Clean the data: empty string to null for UUID translation
             const submitData = {
                 ...formData,
-                wingId: formData.wingId || null
+                wingId: formData.wingId || null,
+                ownerId: formData.ownerId || null
             };
 
-            await api.post('/units', submitData);
+            if (editingUnit) {
+                await api.put(`/units/${editingUnit.id}`, submitData);
+            } else {
+                await api.post('/units', submitData);
+            }
             setIsModalOpen(false);
+            setEditingUnit(null);
             setFormData({
                 unitNumber: '',
                 unitType: '2BHK',
                 areaSqft: '',
+                ownerId: '',
                 ownerName: '',
                 occupied: true,
                 wingId: wings.length > 0 ? wings[0].id : ''
             });
             await fetchData();
-            alert('Unit registered successfully!');
+            alert(`Unit ${editingUnit ? 'updated' : 'registered'} successfully!`);
         } catch (error) {
             console.error(error);
-            alert('Failed to register unit. Ensure you have selected a Wing.');
+            alert(`Failed to ${editingUnit ? 'update' : 'register'} unit. Ensure you have selected a Wing.`);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this unit?")) {
+            try {
+                await api.delete(`/units/${id}`);
+                fetchData();
+            } catch (err) {
+                alert("Error deleting unit.");
+            }
         }
     };
 
@@ -91,13 +114,13 @@ const Units = () => {
                     <button onClick={addWing} className="btn bg-surface border border-glass-border hover:border-primary/50 text-sm">
                         <Plus size={18} /> Add Wing
                     </button>
-                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary shadow-lg shadow-primary/30">
+                    <button onClick={() => { setEditingUnit(null); setIsModalOpen(true); }} className="btn btn-primary shadow-lg shadow-primary/30">
                         <Plus size={20} /> Add Unit
                     </button>
                 </div>
             </header>
 
-            <div className="glass-card p-0 overflow-hidden">
+            <div className="glass-card p-0">
                 <div className="p-4 border-b border-glass-border flex justify-between items-center bg-surface-light/50">
                     <div className="relative w-64">
                         <Search className="absolute left-3 top-2.5 text-muted" size={18} />
@@ -111,7 +134,7 @@ const Units = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-visible">
                     <table className="w-full text-left">
                         <thead className="bg-surface border-b border-glass-border text-muted text-xs uppercase">
                             <tr>
@@ -121,15 +144,16 @@ const Units = () => {
                                 <th className="px-6 py-4 font-semibold">Area (SqFt)</th>
                                 <th className="px-6 py-4 font-semibold">Owner/Tenant</th>
                                 <th className="px-6 py-4 font-semibold">Status</th>
+                                <th className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-glass-border text-sm">
                             {loading ? (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-muted">Loading society data...</td></tr>
+                                <tr><td colSpan="7" className="px-6 py-12 text-center text-muted">Loading society data...</td></tr>
                             ) : units.length === 0 ? (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-muted">No units registered in this society. Click "Add Unit" to start.</td></tr>
+                                <tr><td colSpan="7" className="px-6 py-12 text-center text-muted">No units registered in this society. Click "Add Unit" to start.</td></tr>
                             ) : units.filter(u => u.unitNumber.toLowerCase().includes(searchTerm.toLowerCase()) || u.ownerName?.toLowerCase().includes(searchTerm.toLowerCase())).map((unit) => (
-                                <tr key={unit.id} className="hover:bg-surface-light/30 transition-colors">
+                                <tr key={unit.id} className="hover:bg-surface-light/30 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="w-10 h-10 mx-auto rounded-xl bg-surface border border-glass-border flex items-center justify-center font-bold text-xs text-primary shadow-sm uppercase">
                                             {unit.wingName || '---'}
@@ -149,6 +173,39 @@ const Units = () => {
                                             {unit.occupied ? 'OCCUPIED' : 'VACANT'}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="relative group flex justify-end">
+                                            <button className="p-2 hover:bg-surface-light text-muted rounded-lg transition-colors">
+                                                <MoreVertical size={16} />
+                                            </button>
+                                            <div className="absolute right-0 top-full mt-1 w-36 bg-surface border border-glass-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col py-1 overflow-hidden pointer-events-none group-hover:pointer-events-auto">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingUnit(unit);
+                                                        setFormData({
+                                                            unitNumber: unit.unitNumber,
+                                                            unitType: unit.unitType,
+                                                            areaSqft: unit.areaSqft || '',
+                                                            ownerId: unit.ownerId || '',
+                                                            ownerName: unit.ownerName || '',
+                                                            occupied: unit.occupied,
+                                                            wingId: unit.wingId
+                                                        });
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-surface-light flex items-center gap-3 text-muted hover:text-primary transition-colors"
+                                                >
+                                                    <Edit size={14} /> Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(unit.id)}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-error/10 flex items-center gap-3 text-error transition-colors"
+                                                >
+                                                    <Trash2 size={14} /> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -167,7 +224,7 @@ const Units = () => {
                             <X size={20} />
                         </button>
 
-                        <h2 className="text-2xl font-bold mb-6 gradient-text">Register New Unit</h2>
+                        <h2 className="text-2xl font-bold mb-6 gradient-text">{editingUnit ? 'Edit Unit' : 'Register New Unit'}</h2>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -224,15 +281,31 @@ const Units = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Owner/Member Name</label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter full name"
-                                    className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm"
-                                    value={formData.ownerName}
-                                    onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Linked Member</label>
+                                    <select
+                                        className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm"
+                                        value={formData.ownerId}
+                                        onChange={(e) => setFormData({ ...formData, ownerId: e.target.value, ownerName: '' })}
+                                    >
+                                        <option value="">-- Unassigned / External --</option>
+                                        {members.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName} ({m.memberId || 'No ID'})</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">
+                                        {formData.ownerId ? 'Member Name (Auto-filled)' : 'Owner Name (Manual Entry)'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder={formData.ownerId ? "Automatically set from Member" : "Enter manual name"}
+                                        className="w-full p-3 rounded-xl bg-surface border border-glass-border focus:border-primary outline-none text-sm disabled:opacity-50"
+                                        value={formData.ownerName}
+                                        onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                                        disabled={!!formData.ownerId}
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2 pt-2">
@@ -247,7 +320,7 @@ const Units = () => {
                             </div>
 
                             <button type="submit" className="w-full btn btn-primary py-4 mt-4 shadow-lg shadow-primary/20">
-                                Register Unit
+                                {editingUnit ? 'Update Unit' : 'Register Unit'}
                             </button>
                         </form>
 

@@ -52,4 +52,24 @@ public class ShareCertificateController {
                 .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_PDF))
                 .body(pdf);
     }
+
+    @PutMapping("/{id}")
+    public ShareCertificate update(@PathVariable UUID id,
+            @RequestParam UUID unitId,
+            @RequestParam String memberName,
+            @RequestParam Integer startNo,
+            @RequestParam Integer count,
+            @RequestParam java.math.BigDecimal shareValue,
+            @RequestParam(required = false) String chairmanName,
+            @RequestParam(required = false) String secretaryName) {
+        return certificateService.updateCertificate(id, unitId, memberName, startNo, count, shareValue, chairmanName,
+                secretaryName);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        certificateService.deleteCertificate(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

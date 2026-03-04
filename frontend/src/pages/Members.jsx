@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Edit, Trash2, Mail, Phone, Camera, ShieldCheck, MapPin, Search, X, Check } from 'lucide-react';
+import { Users, UserPlus, Edit, Trash2, Mail, Phone, Camera, ShieldCheck, MapPin, Search, X, Check, Home } from 'lucide-react';
 import api from '../api';
 
 const Members = () => {
@@ -134,6 +134,15 @@ const Members = () => {
                                     <p className="flex items-center gap-2 text-xs text-muted"><Phone size={12} /> {member.phone || 'N/A'}</p>
                                     <p className="flex items-center gap-2 text-xs text-muted truncate"><MapPin size={12} /> {member.address || 'Address not set'}</p>
                                 </div>
+                                {member.ownedUnits && member.ownedUnits.length > 0 && (
+                                    <div className="mt-3 flex flex-wrap gap-1">
+                                        {member.ownedUnits.map((u, i) => (
+                                            <span key={i} className="px-2 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-md flex items-center gap-1 border border-secondary/20 shadow-sm">
+                                                <Home size={10} /> {u}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

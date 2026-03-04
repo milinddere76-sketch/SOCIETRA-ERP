@@ -17,4 +17,6 @@ public interface UnitRepository extends JpaRepository<Unit, UUID> {
     @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM Unit u WHERE u.wing.society.id = :societyId")
     void deleteBySocietyId(@org.springframework.data.repository.query.Param("societyId") UUID societyId);
+
+    List<Unit> findByOwnerId(UUID ownerId);
 }

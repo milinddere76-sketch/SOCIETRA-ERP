@@ -37,6 +37,20 @@ public class UnitController {
         return ResponseEntity.ok(unitService.addUnit(auth.getName(), unitDto));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_UNITS')")
+    public ResponseEntity<UnitDto> updateUnit(Authentication auth, @PathVariable UUID id,
+            @RequestBody UnitDto unitDto) {
+        return ResponseEntity.ok(unitService.updateUnit(auth.getName(), id, unitDto));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_UNITS')")
+    public ResponseEntity<Void> deleteUnit(Authentication auth, @PathVariable UUID id) {
+        unitService.deleteUnit(auth.getName(), id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/wings")
     @PreAuthorize("hasAuthority('MANAGE_UNITS')")
     public ResponseEntity<List<WingDto>> getWings(Authentication auth) {

@@ -3,6 +3,7 @@ package com.chs.society.dto;
 import lombok.Data;
 import java.util.UUID;
 import java.util.Set;
+import java.util.List;
 
 @Data
 public class UserDto {
@@ -18,6 +19,7 @@ public class UserDto {
     private String profilePhoto;
     private String password;
     private Set<String> roles;
+    private List<String> ownedUnits;
 
     public UUID getId() {
         return id;
@@ -105,5 +107,13 @@ public class UserDto {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public List<String> getOwnedUnits() {
+        return ownedUnits;
+    }
+
+    public void setOwnedUnits(List<String> ownedUnits) {
+        this.ownedUnits = ownedUnits;
     }
 }

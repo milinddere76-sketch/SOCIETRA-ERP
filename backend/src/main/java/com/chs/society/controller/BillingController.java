@@ -28,8 +28,16 @@ public class BillingController {
     @PostMapping("/generate")
     @PreAuthorize("hasAuthority('VIEW_DASHBOARD')")
     public ResponseEntity<String> generateBills(Authentication auth, @RequestBody BillGenerationRequest req) {
-        service.generateBillsForSociety(auth.getName(), req.getBillingMonth(), req.getGenerationDate(), req.getDueDate());
+        service.generateBillsForSociety(auth.getName(), req.getBillingMonth(), req.getGenerationDate(),
+                req.getDueDate());
         return ResponseEntity.ok("Bills generated successfully for all active units.");
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('VIEW_DASHBOARD')")
+    public ResponseEntity<String> deleteBill(Authentication auth, @PathVariable String id) {
+        service.deleteBill(id, auth.getName());
+        return ResponseEntity.ok("Bill deleted successfully.");
     }
 }
 

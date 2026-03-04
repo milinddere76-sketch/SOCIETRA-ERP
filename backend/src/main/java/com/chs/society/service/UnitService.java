@@ -81,7 +81,67 @@ public class UnitService {
                 .wing(wing)
                 .build();
 
+        if (unitDto.getOwnerId() != null) {
+            User owner = userRepository.findById(unitDto.getOwnerId()).orElse(null);
+            if (owner != null) {
+                unit.setOwner(owner);
+                unit.setOwnerName(owner.getFirstName() + " " + owner.getLastName());
+            }
+        }
+
         return mapToUnitDto(unitRepository.save(java.util.Objects.requireNonNull(unit)));
+    }
+
+    @Transactional
+    public UnitDto updateUnit(String adminEmail, UUID id, UnitDto unitDto) {
+        User admin = userRepository.findByEmail(adminEmail).orElseThrow();
+        Society society = admin.getSociety();
+        if (society == null)
+            throw new RuntimeException("Unauthorized");
+
+        Unit unit = unitRepository.findById(id).orElseThrow(() -> new RuntimeException("Unit not found"));
+        if (!unit.getWing().getSociety().getId().equals(society.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        unit.setUnitNumber(unitDto.getUnitNumber());
+        unit.setUnitType(unitDto.getUnitType());
+        unit.setAreaSqft(unitDto.getAreaSqft());
+        unit.setOwnerName(unitDto.getOwnerName());
+        unit.setOccupied(unitDto.isOccupied());
+
+        if (unitDto.getOwnerId() != null) {
+            User owner = userRepository.findById(unitDto.getOwnerId()).orElse(null);
+            if (owner != null) {
+                unit.setOwner(owner);
+                unit.setOwnerName(owner.getFirstName() + " " + owner.getLastName());
+            } else {
+                unit.setOwner(null);
+            }
+        } else {
+            unit.setOwner(null);
+        }
+
+        if (unitDto.getWingId() != null && !unit.getWing().getId().equals(unitDto.getWingId())) {
+            Wing wing = wingRepository.findById(unitDto.getWingId()).orElseThrow();
+            unit.setWing(wing);
+        }
+
+        return mapToUnitDto(unitRepository.save(unit));
+    }
+
+    @Transactional
+    public void deleteUnit(String adminEmail, UUID id) {
+        User admin = userRepository.findByEmail(adminEmail).orElseThrow();
+        if (admin.getSociety() == null)
+            throw new RuntimeException("Unauthorized");
+
+        Unit unit = unitRepository.findById(id).orElseThrow(() -> new RuntimeException("Unit not found"));
+        if (!unit.getWing().getSociety().getId().equals(admin.getSociety().getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        unitRepository.delete(unit);
     }
 
     @Transactional
@@ -100,6 +160,7 @@ public class UnitService {
                 .unitType(unit.getUnitType())
                 .areaSqft(unit.getAreaSqft())
                 .ownerName(unit.getOwnerName())
+                .ownerId(unit.getOwner() != null ? unit.getOwner().getId() : null)
                 .occupied(unit.isOccupied())
                 .wingId(unit.getWing().getId())
                 .wingName(unit.getWing().getName())

@@ -107,6 +107,56 @@ public class AccountingController {
         return ResponseEntity.ok(receiptRepository.save(receipt));
     }
 
+    @PutMapping("/receipts/{id}")
+    public ResponseEntity<Receipt> updateReceipt(Authentication auth, @PathVariable UUID id,
+            @RequestBody ReceiptRequest req) {
+        com.chs.society.model.User admin = userRepository.findByEmail(auth.getName()).orElseThrow();
+        Receipt receipt = receiptRepository.findById(id).orElseThrow();
+        if (!receipt.getSociety().getId().equals(admin.getSociety().getId()))
+            return ResponseEntity.status(403).build();
+
+        com.chs.society.model.User member = userRepository.findById(req.getMemberId()).orElseThrow();
+        com.chs.society.model.maintenance.MaintenanceBill bill = null;
+        if (req.getBillId() != null) {
+            bill = billRepository.findById(req.getBillId()).orElseThrow();
+            if (receipt.getBill() == null || !receipt.getBill().getId().equals(bill.getId())) {
+                bill.setStatus(com.chs.society.model.maintenance.MaintenanceBill.BillStatus.PAID);
+                billRepository.save(bill);
+            }
+        }
+
+        if (receipt.getBill() != null && (bill == null || !receipt.getBill().getId().equals(bill.getId()))) {
+            com.chs.society.model.maintenance.MaintenanceBill oldBill = receipt.getBill();
+            oldBill.setStatus(com.chs.society.model.maintenance.MaintenanceBill.BillStatus.UNPAID);
+            billRepository.save(oldBill);
+        }
+
+        receipt.setAmount(req.getAmount());
+        receipt.setPaymentMode(req.getPaymentMode());
+        receipt.setTransactionReference(req.getReference());
+        receipt.setMember(member);
+        receipt.setBill(bill);
+        receipt.setNarration(req.getNarration());
+
+        return ResponseEntity.ok(receiptRepository.save(receipt));
+    }
+
+    @DeleteMapping("/receipts/{id}")
+    public ResponseEntity<Void> deleteReceipt(Authentication auth, @PathVariable UUID id) {
+        com.chs.society.model.User admin = userRepository.findByEmail(auth.getName()).orElseThrow();
+        Receipt receipt = receiptRepository.findById(id).orElseThrow();
+        if (!receipt.getSociety().getId().equals(admin.getSociety().getId()))
+            return ResponseEntity.status(403).build();
+
+        if (receipt.getBill() != null) {
+            com.chs.society.model.maintenance.MaintenanceBill bill = receipt.getBill();
+            bill.setStatus(com.chs.society.model.maintenance.MaintenanceBill.BillStatus.UNPAID);
+            billRepository.save(bill);
+        }
+        receiptRepository.delete(receipt);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/receipts/{id}/pdf")
     public ResponseEntity<byte[]> downloadReceiptPdf(@PathVariable UUID id) {
         Receipt receipt = receiptRepository.findById(id).orElseThrow();
@@ -144,6 +194,37 @@ public class AccountingController {
                 .build();
 
         return ResponseEntity.ok(expenseRepository.save(expense));
+    }
+
+    @PutMapping("/expenses/{id}")
+    public ResponseEntity<Expense> updateExpense(Authentication auth, @PathVariable UUID id,
+            @RequestBody ExpenseRequest req) {
+        com.chs.society.model.User admin = userRepository.findByEmail(auth.getName()).orElseThrow();
+        Expense expense = expenseRepository.findById(id).orElseThrow();
+        if (!expense.getSociety().getId().equals(admin.getSociety().getId()))
+            return ResponseEntity.status(403).build();
+
+        com.chs.society.model.accounting.Ledger ledger = ledgerRepository.findById(req.getLedgerId()).orElseThrow();
+
+        expense.setAmount(req.getAmount());
+        expense.setPayee(req.getPayee());
+        expense.setDescription(req.getDescription());
+        expense.setLedger(ledger);
+        expense.setPaymentMode(req.getPaymentMode());
+        expense.setReferenceNumber(req.getReference());
+
+        return ResponseEntity.ok(expenseRepository.save(expense));
+    }
+
+    @DeleteMapping("/expenses/{id}")
+    public ResponseEntity<Void> deleteExpense(Authentication auth, @PathVariable UUID id) {
+        com.chs.society.model.User admin = userRepository.findByEmail(auth.getName()).orElseThrow();
+        Expense expense = expenseRepository.findById(id).orElseThrow();
+        if (!expense.getSociety().getId().equals(admin.getSociety().getId()))
+            return ResponseEntity.status(403).build();
+
+        expenseRepository.delete(expense);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/expenses/{id}/pdf")

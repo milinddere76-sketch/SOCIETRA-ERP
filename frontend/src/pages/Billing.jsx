@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Receipt, FileText, Download, IndianRupee, X, Settings } from 'lucide-react';
+import { Receipt, FileText, Download, IndianRupee, X, Settings, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 
@@ -36,6 +36,20 @@ const Billing = () => {
         } catch (err) {
             console.error('Failed to generate bills', err);
             alert("Failed to generate bills.");
+        }
+    };
+
+    const handleDelete = async (billId) => {
+        if (!window.confirm("Are you sure you want to delete this bill? This action cannot be undone.")) {
+            return;
+        }
+        try {
+            await api.delete(`/billing/${billId}`);
+            alert("Bill deleted successfully.");
+            fetchBills(); // Refresh the list
+        } catch (err) {
+            console.error('Failed to delete bill', err);
+            alert("Failed to delete bill.");
         }
     };
 
@@ -112,9 +126,18 @@ const Billing = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <button className="text-primary hover:text-primary-hover border border-primary/20 bg-primary/5 p-2 rounded-lg transition-colors">
-                                            <Download size={16} />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button className="text-primary hover:text-primary-hover border border-primary/20 bg-primary/5 p-2 rounded-lg transition-colors">
+                                                <Download size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(inv.id)}
+                                                className="text-error hover:bg-error/10 border border-error/20 bg-error/5 p-2 rounded-lg transition-colors"
+                                                title="Delete Bill"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

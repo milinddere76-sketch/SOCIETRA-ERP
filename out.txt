@@ -1,0 +1,76 @@
+ Volume in drive D is New Volume
+ Volume Serial Number is 04BB-3E01
+
+ Directory of d:\Apps\CHS APP
+
+05-03-2026  01:27    <DIR>          .
+02-03-2026  20:47    <DIR>          ..
+23-02-2026  23:07                80 .dockerignore
+04-03-2026  19:48               501 .env
+23-02-2026  23:33               507 .env.example
+02-03-2026  11:23    <DIR>          .github
+24-02-2026  00:07               218 .gitignore
+04-03-2026  21:37    <DIR>          .idea
+02-03-2026  12:05    <DIR>          .vscode
+28-02-2026  14:21               196 apache-maven.zip
+03-03-2026  23:06    <DIR>          backend
+04-03-2026  23:03            12,839 backend.log
+04-03-2026  23:02               130 backend_docker.log
+02-03-2026  14:28            51,410 backend_logs.txt
+02-03-2026  14:51            51,410 backend_logs_3.txt
+02-03-2026  14:55            24,694 backend_logs_4.txt
+02-03-2026  14:59         1,375,479 backend_logs_5.txt
+02-03-2026  15:02             8,979 backend_logs_6.txt
+02-03-2026  15:34            12,749 backend_logs_7.txt
+02-03-2026  14:39            51,410 backend_logs_new.txt
+04-03-2026  04:17             1,767 build_apk.bat
+03-03-2026  20:38               249 check_ports.bat
+04-03-2026  23:03                72 check_status.bat
+01-03-2026  02:33                 0 demo.html
+04-03-2026  03:17             5,746 deploy.sh
+22-02-2026  14:30             1,939 DEPLOYMENT_GUIDE.md
+28-02-2026  14:35               650 dev_run.bat
+24-02-2026  00:58             2,473 docker-compose.prod.yml
+04-03-2026  19:48               913 docker-compose.yml
+02-03-2026  13:18           737,128 docker_backend_ansi.log
+02-03-2026  13:43           755,398 docker_backend_ansi2.log
+02-03-2026  13:54           744,533 docker_backend_ansi3.log
+02-03-2026  14:07           745,863 docker_backend_ansi4.log
+02-03-2026  14:46         2,005,570 docker_backend_ansi_clean.log
+02-03-2026  14:54         1,943,710 docker_backend_ansi_clean2.log
+02-03-2026  14:58         1,965,556 docker_backend_ansi_clean3.log
+02-03-2026  15:01         1,945,664 docker_backend_ansi_clean4.log
+02-03-2026  12:58         1,638,670 docker_backend_build.log
+02-03-2026  15:26         1,470,740 docker_backend_build_maintenance.log
+02-03-2026  15:30         1,988,796 docker_backend_build_maintenance_2.log
+02-03-2026  15:27           735,372 docker_backend_build_maintenance_utf8.log
+02-03-2026  13:21            22,818 docker_backend_clean.log
+02-03-2026  13:45             6,288 docker_backend_clean2.log
+02-03-2026  13:55             6,911 docker_backend_clean3.log
+02-03-2026  14:09             6,931 docker_backend_clean4.log
+02-03-2026  14:48                 0 docker_backend_clean_last.log
+02-03-2026  12:46             1,702 docker_build.log
+02-03-2026  14:23           984,003 docker_compose_build_final.log
+02-03-2026  15:31         1,974,366 docker_final_build.log
+02-03-2026  15:25             1,408 docker_frontend_build.log
+02-03-2026  13:13             1,272 docker_maven.log
+02-03-2026  13:36               101 docker_maven_retry.log
+02-03-2026  13:37                 0 docker_maven_retry_clean.log
+02-03-2026  11:23    <DIR>          docs
+04-03-2026  22:47    <DIR>          frontend
+02-03-2026  15:03             1,388 frontend_logs.txt
+22-02-2026  14:21             2,064 implementation_plan.md
+05-03-2026  01:27                 0 out.txt
+23-02-2026  23:35               742 prod_deploy.bat
+24-02-2026  00:58             3,021 PROD_DEPLOYMENT.md
+03-03-2026  23:06    <DIR>          proxy
+04-03-2026  23:03             1,354 ps.log
+24-02-2026  00:56             1,815 README.md
+28-02-2026  14:36             2,648 RECOVERY_PLAN.md
+05-03-2026  01:00             1,016 render.yaml
+02-03-2026  20:39               985 restart_backend.bat
+04-03-2026  22:51               268 start_backend.bat
+04-03-2026  22:51               140 start_frontend.bat
+22-02-2026  16:25             2,802 TEST_RESULTS.md
+              60 File(s)     21,305,454 bytes
+               9 Dir(s)  46,343,520,256 bytes free

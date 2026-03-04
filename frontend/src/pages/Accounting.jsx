@@ -43,6 +43,8 @@ const Accounting = () => {
     const [ledgers, setLedgers] = useState([]);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [editingReceipt, setEditingReceipt] = useState(null);
+    const [editingExpense, setEditingExpense] = useState(null);
 
     const [receiptForm, setReceiptForm] = useState({ memberId: '', billId: '', amount: '', paymentMode: 'Cash', reference: '', narration: '' });
     const [expenseForm, setExpenseForm] = useState({ ledgerId: '', amount: '', payee: '', description: '', paymentMode: 'Cash', reference: '' });
@@ -92,8 +94,13 @@ const Accounting = () => {
     const handleReceiptSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/accounting/receipts', receiptForm);
+            if (editingReceipt) {
+                await api.put(`/accounting/receipts/${editingReceipt.id}`, receiptForm);
+            } else {
+                await api.post('/accounting/receipts', receiptForm);
+            }
             setShowReceiptModal(false);
+            setEditingReceipt(null);
             fetchReceiptData();
         } catch (err) {
             alert("Failed to save receipt");
@@ -103,11 +110,36 @@ const Accounting = () => {
     const handleExpenseSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/accounting/expenses', expenseForm);
+            if (editingExpense) {
+                await api.put(`/accounting/expenses/${editingExpense.id}`, expenseForm);
+            } else {
+                await api.post('/accounting/expenses', expenseForm);
+            }
             setShowExpenseModal(false);
+            setEditingExpense(null);
             fetchExpenseData();
         } catch (err) {
             alert("Failed to save expense");
+        }
+    };
+
+    const handleReceiptDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this receipt? This will revert the maintenance bill to UNPAID if linked.")) return;
+        try {
+            await api.delete(`/accounting/receipts/${id}`);
+            fetchReceiptData();
+        } catch (err) {
+            alert("Failed to delete receipt");
+        }
+    };
+
+    const handleExpenseDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this expense voucher?")) return;
+        try {
+            await api.delete(`/accounting/expenses/${id}`);
+            fetchExpenseData();
+        } catch (err) {
+            alert("Failed to delete expense");
         }
     };
 
@@ -367,12 +399,12 @@ const Accounting = () => {
                         </div>
                     )}
                     {activeTab === 'receipts' && (
-                        <button className="btn btn-primary shadow-lg shadow-primary/30 flex items-center gap-2" onClick={() => setShowReceiptModal(true)}>
+                        <button className="btn btn-primary shadow-lg shadow-primary/30 flex items-center gap-2" onClick={() => { setEditingReceipt(null); setReceiptForm({ memberId: '', billId: '', amount: '', paymentMode: 'Cash', reference: '', narration: '' }); setShowReceiptModal(true); }}>
                             <Plus size={20} /> Record Receipt
                         </button>
                     )}
                     {activeTab === 'expenses' && (
-                        <button className="btn btn-primary shadow-lg shadow-primary/30 flex items-center gap-2" onClick={() => setShowExpenseModal(true)}>
+                        <button className="btn btn-primary shadow-lg shadow-primary/30 flex items-center gap-2" onClick={() => { setEditingExpense(null); setExpenseForm({ ledgerId: '', amount: '', payee: '', description: '', paymentMode: 'Cash', reference: '' }); setShowExpenseModal(true); }}>
                             <Plus size={20} /> Record Expense
                         </button>
                     )}
@@ -507,9 +539,28 @@ const Accounting = () => {
                                                     <div className="text-[9px] text-muted uppercase">{r.transactionReference}</div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button onClick={() => downloadReceipt(r.id)} className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-primary/20 flex items-center gap-2 text-[10px] font-black uppercase ml-auto">
-                                                        <Download size={14} /> PDF
-                                                    </button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => {
+                                                            setEditingReceipt(r);
+                                                            setReceiptForm({
+                                                                memberId: r.member?.id || '',
+                                                                billId: r.bill?.id || '',
+                                                                amount: r.amount || '',
+                                                                paymentMode: r.paymentMode || 'Cash',
+                                                                reference: r.transactionReference || '',
+                                                                narration: r.narration || ''
+                                                            });
+                                                            setShowReceiptModal(true);
+                                                        }} className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-primary/20 flex items-center justify-center w-8 h-8">
+                                                            <Edit size={14} />
+                                                        </button>
+                                                        <button onClick={() => handleReceiptDelete(r.id)} className="p-2 hover:bg-error/10 text-error rounded-lg transition-colors border border-error/20 flex items-center justify-center w-8 h-8">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <button onClick={() => downloadReceipt(r.id)} className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-primary/20 flex items-center gap-2 text-[10px] font-black uppercase ml-auto">
+                                                            <Download size={14} /> PDF
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -557,9 +608,28 @@ const Accounting = () => {
                                                 </td>
                                                 <td className="px-6 py-4 font-black text-error">₹{e.amount.toLocaleString()}</td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button onClick={() => downloadVoucher(e.id)} className="p-2 hover:bg-error/10 text-error rounded-lg transition-colors border border-error/20 flex items-center gap-2 text-[10px] font-black uppercase ml-auto">
-                                                        <Download size={14} /> PDF
-                                                    </button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => {
+                                                            setEditingExpense(e);
+                                                            setExpenseForm({
+                                                                ledgerId: e.ledger?.id || '',
+                                                                amount: e.amount || '',
+                                                                payee: e.payee || '',
+                                                                description: e.description || '',
+                                                                paymentMode: e.paymentMode || 'Cash',
+                                                                reference: e.referenceNumber || ''
+                                                            });
+                                                            setShowExpenseModal(true);
+                                                        }} className="p-2 hover:bg-error/10 text-error rounded-lg transition-colors border border-error/20 flex items-center justify-center w-8 h-8">
+                                                            <Edit size={14} />
+                                                        </button>
+                                                        <button onClick={() => handleExpenseDelete(e.id)} className="p-2 hover:bg-error/10 text-error rounded-lg transition-colors border border-error/20 flex items-center justify-center w-8 h-8">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <button onClick={() => downloadVoucher(e.id)} className="p-2 hover:bg-error/10 text-error rounded-lg transition-colors border border-error/20 flex items-center gap-2 text-[10px] font-black uppercase ml-auto">
+                                                            <Download size={14} /> PDF
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -764,7 +834,7 @@ const Accounting = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="glass-card w-full max-w-lg shadow-2xl relative border-t-8 border-success">
                             <button onClick={() => setShowReceiptModal(false)} className="absolute right-4 top-4 p-2 hover:bg-surface-light rounded-full text-muted"><X size={20} /></button>
                             <div className="p-8">
-                                <h2 className="text-2xl font-black mb-1 text-success uppercase tracking-tighter">Record Member Receipt</h2>
+                                <h2 className="text-2xl font-black mb-1 text-success uppercase tracking-tighter">{editingReceipt ? 'Edit Member Receipt' : 'Record Member Receipt'}</h2>
                                 <p className="text-xs text-muted mb-8 font-bold uppercase tracking-widest">Link payment to member and maintenance bill.</p>
 
                                 <form onSubmit={handleReceiptSubmit} className="space-y-4">
@@ -804,7 +874,7 @@ const Accounting = () => {
                                         <input type="text" className="input" value={receiptForm.narration} onChange={e => setReceiptForm({ ...receiptForm, narration: e.target.value, reference: e.target.value })} placeholder="Transaction ID, Cheque No, etc." />
                                     </div>
                                     <button type="submit" className="w-full btn btn-primary bg-success border-success py-4 mt-4 uppercase font-black tracking-widest">
-                                        Generate Receipt
+                                        {editingReceipt ? 'Update Receipt' : 'Generate Receipt'}
                                     </button>
                                 </form>
                             </div>
@@ -820,7 +890,7 @@ const Accounting = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="glass-card w-full max-w-lg shadow-2xl relative border-t-8 border-error">
                             <button onClick={() => setShowExpenseModal(false)} className="absolute right-4 top-4 p-2 hover:bg-surface-light rounded-full text-muted"><X size={20} /></button>
                             <div className="p-8">
-                                <h2 className="text-2xl font-black mb-1 text-error uppercase tracking-tighter">Record Society Expense</h2>
+                                <h2 className="text-2xl font-black mb-1 text-error uppercase tracking-tighter">{editingExpense ? 'Edit Society Expense' : 'Record Society Expense'}</h2>
                                 <p className="text-xs text-muted mb-8 font-bold uppercase tracking-widest">Issue a payment voucher for society expenditure.</p>
 
                                 <form onSubmit={handleExpenseSubmit} className="space-y-4">
@@ -854,7 +924,7 @@ const Accounting = () => {
                                         <textarea className="input min-h-[80px]" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} required />
                                     </div>
                                     <button type="submit" className="w-full btn btn-primary bg-error border-error py-4 mt-4 uppercase font-black tracking-widest">
-                                        Generate Payment Voucher
+                                        {editingExpense ? 'Update Payment Voucher' : 'Generate Payment Voucher'}
                                     </button>
                                 </form>
                             </div>

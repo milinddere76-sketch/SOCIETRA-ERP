@@ -17,6 +17,7 @@ public class UnitDto {
     private String unitType;
     private Double areaSqft;
     private String ownerName;
+    private UUID ownerId;
     private boolean occupied;
     private UUID wingId;
     private String wingName;

@@ -5,6 +5,7 @@ import com.chs.society.model.Role;
 import com.chs.society.model.User;
 import com.chs.society.repository.RoleRepository;
 import com.chs.society.repository.UserRepository;
+import com.chs.society.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,7 @@ public class MemberController {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
@@ -113,6 +115,10 @@ public class MemberController {
         d.setProfilePhoto(u.getProfilePhoto());
         d.setActive(u.isActive());
         d.setRoles(u.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
+        List<String> units = unitRepository.findByOwnerId(u.getId()).stream()
+                .map(com.chs.society.model.Unit::getUnitNumber)
+                .collect(Collectors.toList());
+        d.setOwnedUnits(units);
         return d;
     }
 }

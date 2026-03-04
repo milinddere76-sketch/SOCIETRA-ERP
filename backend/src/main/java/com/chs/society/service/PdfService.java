@@ -144,7 +144,7 @@ public class PdfService {
                 Paragraph balNote = new Paragraph("Current Outstanding Balance: INR " + receipt.getCurrentBalance(),
                         societyDetailsFont);
                 balNote.setAlignment(Element.ALIGN_RIGHT);
-                balNote.setSpacingTop(5f);
+                balNote.setSpacingBefore(5f);
                 outerCell.addElement(balNote);
             }
 

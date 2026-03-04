@@ -4,7 +4,6 @@ services:
     name: societra-backend
     env: docker
     rootDir: backend
-    dockerfilePath: Dockerfile
     plan: free # Use 'free' for the free tier
     envVars:
       - key: SPRING_DATASOURCE_URL

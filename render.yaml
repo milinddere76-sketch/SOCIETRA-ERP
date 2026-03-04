@@ -3,8 +3,7 @@ services:
   - type: web
     name: societra-backend
     env: docker
-    dockerContext: .
-    dockerfilePath: backend/Dockerfile
+    rootDir: backend
     plan: free # Use 'free' for the free tier
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -24,9 +23,9 @@ services:
   - type: web
     name: societra-frontend
     runtime: static
+    rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    rootDir: frontend
     envVars:
       - key: VITE_API_URL
         sync: false # Set to your backend URL (e.g., https://societra-backend.onrender.com)

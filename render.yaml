@@ -3,7 +3,7 @@ services:
   - type: web
     name: societra-backend
     env: docker
-    dockerContext: backend
+    dockerContext: .
     dockerfilePath: backend/Dockerfile
     plan: free # Use 'free' for the free tier
     envVars:

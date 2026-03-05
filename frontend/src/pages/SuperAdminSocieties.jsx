@@ -100,10 +100,22 @@ const SuperAdminSocieties = () => {
         }
     };
 
+    const handleStatusToggle = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        if (!window.confirm(`Are you sure you want to make this society ${newStatus}?`)) return;
+        try {
+            await api.put(`/superadmin/societies/${id}/status?status=${newStatus}`);
+            fetchSocieties();
+        } catch (error) {
+            console.error("Status update failed", error);
+            alert("Failed to update status");
+        }
+    };
+
     const handleReject = async (id) => {
         if (!window.confirm("Reject this society registration?")) return;
         try {
-            await api.post(`/superadmin/societies/${id}/reject`);
+            await api.put(`/superadmin/societies/${id}/status?status=INACTIVE`);
             fetchSocieties();
         } catch (error) {
             console.error("Rejection failed", error);
@@ -219,7 +231,7 @@ const SuperAdminSocieties = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-[9px] font-black tracking-widest ${soc.status === 'ACTIVE' ? 'bg-success/20 text-success' :
-                                                soc.status === 'PENDING' ? 'bg-warning/20 text-warning' : 'bg-error/20 text-error'
+                                            soc.status === 'PENDING' ? 'bg-warning/20 text-warning' : 'bg-error/20 text-error'
                                             }`}>
                                             {soc.status}
                                         </span>
@@ -227,14 +239,20 @@ const SuperAdminSocieties = () => {
                                     <td className="px-6 py-4 flex justify-end gap-2">
                                         {soc.status === 'PENDING' ? (
                                             <>
-                                                <button onClick={() => handleApprove(soc.id)} className="p-2 bg-success/10 text-success hover:bg-success hover:text-white rounded-lg transition-colors border-0"><CheckCircle size={14} /></button>
-                                                <button onClick={() => handleReject(soc.id)} className="p-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-colors border-0"><XCircle size={14} /></button>
+                                                <button onClick={() => handleApprove(soc.id)} title="Approve" className="p-2 bg-success/10 text-success hover:bg-success hover:text-white rounded-lg transition-colors border-0"><CheckCircle size={14} /></button>
+                                                <button onClick={() => handleReject(soc.id)} title="Reject" className="p-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-colors border-0"><XCircle size={14} /></button>
                                             </>
                                         ) : (
-                                            <div className="p-2 bg-success/10 text-success rounded-lg border-0"><Shield size={14} /></div>
+                                            <>
+                                                {soc.status === 'ACTIVE' ? (
+                                                    <button onClick={() => handleStatusToggle(soc.id, soc.status)} title="Deactivate" className="p-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg transition-colors border-0"><XCircle size={14} /></button>
+                                                ) : (
+                                                    <button onClick={() => handleStatusToggle(soc.id, soc.status)} title="Activate" className="p-2 bg-success/10 text-success hover:bg-success hover:text-white rounded-lg transition-colors border-0"><CheckCircle size={14} /></button>
+                                                )}
+                                            </>
                                         )}
-                                        <button onClick={() => handleEdit(soc)} className="p-2 bg-surface-light text-muted hover:text-primary rounded-lg border border-glass-border transition-all"><Edit2 size={14} /></button>
-                                        <button onClick={() => handleDelete(soc.id)} className="p-2 bg-surface-light text-muted hover:text-error rounded-lg border border-glass-border transition-all"><Trash2 size={14} /></button>
+                                        <button onClick={() => handleEdit(soc)} title="Edit" className="p-2 bg-surface-light text-muted hover:text-primary rounded-lg border border-glass-border transition-all"><Edit2 size={14} /></button>
+                                        <button onClick={() => handleDelete(soc.id)} title="Delete Everything" className={`p-2 rounded-lg border transition-all ${soc.status === 'INACTIVE' ? 'bg-error text-white border-error shadow-lg shadow-error/30' : 'bg-surface-light text-muted hover:text-error border-glass-border'}`}><Trash2 size={14} /></button>
                                     </td>
                                 </tr>
                             ))}

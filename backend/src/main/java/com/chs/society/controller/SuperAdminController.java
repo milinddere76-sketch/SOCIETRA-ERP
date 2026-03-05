@@ -58,6 +58,12 @@ public class SuperAdminController {
         return ResponseEntity.ok(superAdminService.approveSociety(id));
     }
 
+    @PutMapping("/societies/{id}/status")
+    @PreAuthorize("hasAuthority('MANAGE_SOCIETY')")
+    public ResponseEntity<SocietyDto> updateStatus(@PathVariable UUID id, @RequestParam String status) {
+        return ResponseEntity.ok(superAdminService.updateSocietyStatus(id, status));
+    }
+
     // --- USERS CRUD ---
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")

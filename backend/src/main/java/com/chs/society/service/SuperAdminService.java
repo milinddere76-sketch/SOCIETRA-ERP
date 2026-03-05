@@ -11,6 +11,7 @@ import com.chs.society.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Set;
@@ -18,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class SuperAdminService {
 
     private final SocietyRepository societyRepository;
@@ -101,78 +103,91 @@ public class SuperAdminService {
 
     @Transactional
     public SocietyDto createSociety(CreateSocietyRequest request) {
-        // Generate unique Society Code
-        String baseCode = "SOC-" + (request.getCity() != null && request.getCity().length() >= 3
-                ? request.getCity().substring(0, 3).toUpperCase()
-                : "GEN");
-        String societyCode;
-        do {
-            societyCode = baseCode + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        } while (societyRepository.existsBySocietyCode(societyCode));
+        log.info("Creating new society: {}", request.getName());
+        try {
+            // Generate unique Society Code
+            String baseCode = "SOC-" + (request.getCity() != null && request.getCity().length() >= 3
+                    ? request.getCity().substring(0, 3).toUpperCase()
+                    : "GEN");
+            String societyCode;
+            do {
+                societyCode = baseCode + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+            } while (societyRepository.existsBySocietyCode(societyCode));
 
-        com.chs.society.model.subscription.SubscriptionPlan plan = null;
-        if (request.getPlanId() != null) {
-            plan = subscriptionPlanRepository.findById(request.getPlanId()).orElse(null);
-        }
-
-        boolean autoApprove = false;
-        java.time.LocalDate expiry = null;
-
-        if (plan != null) {
-            if (plan.getPlanType() == com.chs.society.model.subscription.SubscriptionPlan.PlanType.DEMO) {
-                autoApprove = true;
+            com.chs.society.model.subscription.SubscriptionPlan plan = null;
+            if (request.getPlanId() != null) {
+                plan = subscriptionPlanRepository.findById(request.getPlanId()).orElse(null);
+            } else if (request.getSubscriptionPlan() != null) {
+                String planName = request.getSubscriptionPlan().toUpperCase();
+                plan = subscriptionPlanRepository.findAll().stream()
+                        .filter(p -> p.getPlanType().name().contains(planName)
+                                || p.getName().toUpperCase().contains(planName))
+                        .findFirst()
+                        .orElse(null);
             }
-            if (plan.getValidityDays() != null) {
-                expiry = java.time.LocalDate.now().plusDays(plan.getValidityDays());
+
+            boolean autoApprove = false;
+            java.time.LocalDate expiry = null;
+
+            if (plan != null) {
+                if (plan.getPlanType() == com.chs.society.model.subscription.SubscriptionPlan.PlanType.DEMO) {
+                    autoApprove = true;
+                }
+                if (plan.getValidityDays() != null) {
+                    expiry = java.time.LocalDate.now().plusDays(plan.getValidityDays());
+                }
             }
+
+            Society society = Society.builder()
+                    .name(request.getName())
+                    .registrationNumber(request.getRegistrationNumber())
+                    .address(request.getAddress())
+                    .city(request.getCity())
+                    .state(request.getState())
+                    .pincode(request.getPincode())
+                    .country(request.getCountry())
+                    .adminEmail(request.getAdminEmail())
+                    .adminMobile(request.getAdminMobile())
+                    .societyCode(societyCode)
+                    .status(autoApprove ? Society.SocietyStatus.ACTIVE : Society.SocietyStatus.PENDING)
+                    .isApproved(autoApprove)
+                    .subscriptionPlan(plan)
+                    .subscriptionExpiry(expiry)
+                    .memberLimit(request.getMemberLimit() != null ? request.getMemberLimit() : 50)
+                    .build();
+
+            society = societyRepository.save(java.util.Objects.requireNonNull(society));
+
+            // Also create a Society Admin User if email provided
+            if (request.getAdminEmail() != null && !request.getAdminEmail().isEmpty()) {
+                Role secretaryRole = roleRepository.findByName("ROLE_SOCIETY_ADMIN")
+                        .orElseThrow(() -> new RuntimeException("Society Admin Role not found"));
+
+                String password = (request.getAdminPassword() != null && !request.getAdminPassword().isEmpty())
+                        ? request.getAdminPassword()
+                        : "Temp@123";
+
+                // Find or create admin user
+                User adminUser = userRepository.findByEmail(request.getAdminEmail()).orElseGet(() -> User.builder()
+                        .email(request.getAdminEmail())
+                        .build());
+
+                adminUser.setPhone(request.getAdminMobile());
+                adminUser.setPassword(passwordEncoder.encode(password));
+                adminUser.setFirstName("Admin");
+                adminUser.setLastName(request.getName());
+                adminUser.setRoles(Set.of(secretaryRole));
+                adminUser.setSociety(society);
+                adminUser.setActive(true);
+
+                userRepository.save(java.util.Objects.requireNonNull(adminUser));
+            }
+
+            return mapToSocietyDto(society);
+        } catch (Exception e) {
+            log.error("Failed to create society: {}", e.getMessage(), e);
+            throw new RuntimeException("Error saving society: " + e.getMessage());
         }
-
-        Society society = Society.builder()
-                .name(request.getName())
-                .registrationNumber(request.getRegistrationNumber())
-                .address(request.getAddress())
-                .city(request.getCity())
-                .state(request.getState())
-                .pincode(request.getPincode())
-                .country(request.getCountry())
-                .adminEmail(request.getAdminEmail())
-                .adminMobile(request.getAdminMobile())
-                .societyCode(societyCode)
-                .status(autoApprove ? Society.SocietyStatus.ACTIVE : Society.SocietyStatus.PENDING)
-                .isApproved(autoApprove)
-                .subscriptionPlan(plan)
-                .subscriptionExpiry(expiry)
-                .memberLimit(request.getMemberLimit() != null ? request.getMemberLimit() : 50)
-                .build();
-
-        society = societyRepository.save(java.util.Objects.requireNonNull(society));
-
-        // Also create a Society Admin User if email provided
-        if (request.getAdminEmail() != null && !request.getAdminEmail().isEmpty()) {
-            Role secretaryRole = roleRepository.findByName("ROLE_SOCIETY_ADMIN")
-                    .orElseThrow(() -> new RuntimeException("Society Admin Role not found"));
-
-            String password = (request.getAdminPassword() != null && !request.getAdminPassword().isEmpty())
-                    ? request.getAdminPassword()
-                    : "Temp@123";
-
-            // Find or create admin user
-            User adminUser = userRepository.findByEmail(request.getAdminEmail()).orElseGet(() -> User.builder()
-                    .email(request.getAdminEmail())
-                    .build());
-
-            adminUser.setPhone(request.getAdminMobile());
-            adminUser.setPassword(passwordEncoder.encode(password));
-            adminUser.setFirstName("Admin");
-            adminUser.setLastName(request.getName());
-            adminUser.setRoles(Set.of(secretaryRole));
-            adminUser.setSociety(society);
-            adminUser.setActive(true);
-
-            userRepository.save(java.util.Objects.requireNonNull(adminUser));
-        }
-
-        return mapToSocietyDto(society);
     }
 
     @Transactional

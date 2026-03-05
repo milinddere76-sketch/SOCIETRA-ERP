@@ -149,29 +149,26 @@ public class SuperAdminService {
 
         // Also create a Society Admin User if email provided
         if (request.getAdminEmail() != null && !request.getAdminEmail().isEmpty()) {
-            if (userRepository.findByEmail(request.getAdminEmail()).isEmpty()) {
-                Role secretaryRole = roleRepository.findByName("ROLE_SOCIETY_ADMIN")
-                        .orElseThrow(() -> new RuntimeException("Society Admin Role not found"));
+            // Find or create admin user
+            User adminUser = userRepository.findByEmail(request.getAdminEmail()).orElseGet(() -> User.builder()
+                    .email(request.getAdminEmail())
+                    .build());
 
-                String password = (request.getAdminPassword() != null && !request.getAdminPassword().isEmpty())
-                        ? request.getAdminPassword()
-                        : "Temp@123";
+            adminUser.setPhone(request.getAdminMobile());
+            adminUser.setPassword(passwordEncoder.encode(password));
+            adminUser.setFirstName("Admin");
+            adminUser.setLastName(request.getName());
+            adminUser.setRoles(Set.of(secretaryRole));
+            adminUser.setSociety(society);
+            adminUser.setActive(true);
 
-                User adminUser = User.builder()
-                        .email(request.getAdminEmail())
-                        .phone(request.getAdminMobile())
-                        .password(passwordEncoder.encode(password))
-                        .firstName("Admin")
-                        .lastName(request.getName())
-                        .roles(Set.of(secretaryRole))
-                        .society(society)
-                        .isActive(true)
-                        .build();
-                userRepository.save(java.util.Objects.requireNonNull(adminUser));
-            }
+            userRepository.save(java.util.Objects.requireNonNull(adminUser));
         }
+    }
 
-        return mapToSocietyDto(society);
+    return
+
+    mapToSocietyDto(society);
     }
 
     @Transactional

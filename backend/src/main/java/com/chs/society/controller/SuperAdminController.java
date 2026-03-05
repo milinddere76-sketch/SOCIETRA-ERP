@@ -92,6 +92,7 @@ public class SuperAdminController {
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        throw new RuntimeException("Super Admin is not allowed to delete users.");
+        superAdminService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }

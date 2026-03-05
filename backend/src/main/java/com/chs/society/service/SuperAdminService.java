@@ -47,6 +47,7 @@ public class SuperAdminService {
     private final com.chs.society.repository.UnitRepository unitRepository;
     private final com.chs.society.repository.WingRepository wingRepository;
     private final com.chs.society.repository.FinancialYearRepository financialYearRepository;
+    private final com.chs.society.repository.MeetingRSVPRepository rsvpRepository;
 
     public SuperAdminService(SocietyRepository societyRepository, UserRepository userRepository,
             RoleRepository roleRepository,
@@ -70,7 +71,8 @@ public class SuperAdminService {
             com.chs.society.repository.LedgerRepository ledgerRepository,
             com.chs.society.repository.UnitRepository unitRepository,
             com.chs.society.repository.WingRepository wingRepository,
-            com.chs.society.repository.FinancialYearRepository financialYearRepository) {
+            com.chs.society.repository.FinancialYearRepository financialYearRepository,
+            com.chs.society.repository.MeetingRSVPRepository rsvpRepository) {
         this.societyRepository = societyRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -95,6 +97,7 @@ public class SuperAdminService {
         this.unitRepository = unitRepository;
         this.wingRepository = wingRepository;
         this.financialYearRepository = financialYearRepository;
+        this.rsvpRepository = rsvpRepository;
     }
 
     public List<SocietyDto> getAllSocieties() {
@@ -286,6 +289,24 @@ public class SuperAdminService {
         for (Society s : all) {
             deleteSociety(s.getId());
         }
+    }
+
+    @Transactional
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Cleanup dependencies
+        notificationRepository.deleteByUserId(userId);
+        rsvpRepository.deleteByUserId(userId);
+        committeeMemberRepository.deleteByUserId(userId);
+
+        entityManager.createQuery("DELETE FROM OtpToken t WHERE t.email = :email")
+                .setParameter("email", user.getEmail()).executeUpdate();
+
+        // Important: If user is an admin of a society, we might want to clear that
+        // society's adminEmail as well?
+        // But for now, just delete the user.
+        userRepository.delete(user);
     }
 
     @Transactional

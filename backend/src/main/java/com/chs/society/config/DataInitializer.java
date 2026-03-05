@@ -90,7 +90,7 @@ public class DataInitializer {
                                                 admin.setPhone("9967833175");
                                                 admin.setPassword(passwordEncoder.encode("Admin@123"));
                                                 admin.setRoles(Set.of(adminRole));
-                                                admin.setIsActive(true);
+                                                admin.setActive(true);
                                                 userRepository.save(admin);
                                         },
                                         () -> userRepository.save(java.util.Objects.requireNonNull(User.builder()

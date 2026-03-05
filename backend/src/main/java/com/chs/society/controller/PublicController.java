@@ -31,7 +31,7 @@ public class PublicController {
         return userRepository.findByEmail(email)
                 .map(user -> ResponseEntity.ok(java.util.Map.of(
                         "exists", true,
-                        "isActive", user.getIsActive(),
+                        "isActive", user.isActive(),
                         "roles", user.getRoles().stream().map(r -> r.getName()).toList())))
                 .orElse(ResponseEntity.ok(java.util.Map.of("exists", false)));
     }

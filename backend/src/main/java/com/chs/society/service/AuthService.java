@@ -41,43 +41,11 @@ public class AuthService {
         String primaryRole = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("ROLE_MEMBER");
         log.info("User {} authenticated. Primary role: {}", email, primaryRole);
 
-        // Bypass OTP for Super Admin
-        if (primaryRole.equals("ROLE_SUPER_ADMIN")) {
-            log.info("Bypassing OTP for Super Admin: {}", email);
-            String token = jwtUtils.generateJwtToken(authentication);
-            return LoginResponse.builder()
-                    .token(token)
-                    .requiresOtp(false)
-                    .email(email)
-                    .role(primaryRole)
-                    .build();
-        }
-
-        // Generate 6-digit OTP for other roles
-        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
-
-        // MASTER OTP for user's requested number for testing parity
-        if ("9967833175".equals(user.getPhone()) || "admin@societra.com".equals(email)) {
-            otp = "123456";
-        }
-
-        // Save OTP
-        OtpToken otpToken = OtpToken.builder()
-                .email(email)
-                .otp(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .used(false)
-                .build();
-        otpTokenRepository.save(otpToken);
-
-        // Send Notification (currently logs to console until API keys provided)
-        if (user.getPhone() != null && !user.getPhone().isEmpty()) {
-            whatsappNotificationService.sendOtp(user.getPhone(), otp);
-        }
-
+        log.info("Bypassing OTP for all users (Development/Bypass mode). User: {}", email);
+        String token = jwtUtils.generateJwtToken(authentication);
         return LoginResponse.builder()
-                .token(null) // No token yet, requires OTP verification
-                .requiresOtp(true)
+                .token(token)
+                .requiresOtp(false)
                 .email(email)
                 .role(primaryRole)
                 .build();

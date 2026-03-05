@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @lombok.RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -26,14 +27,23 @@ public class AuthService {
     private final WhatsAppNotificationService whatsappNotificationService;
 
     public LoginResponse initiateLogin(String email, String password) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password));
+        log.info("Attempting login for user: {}", email);
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password));
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            log.error("Authentication failed for user: {}. Error: {}", email, e.getMessage());
+            throw e;
+        }
 
         User user = userRepository.findByEmail(email).orElseThrow();
         String primaryRole = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("ROLE_MEMBER");
+        log.info("User {} authenticated. Primary role: {}", email, primaryRole);
 
         // Bypass OTP for Super Admin
         if (primaryRole.equals("ROLE_SUPER_ADMIN")) {
+            log.info("Bypassing OTP for Super Admin: {}", email);
             String token = jwtUtils.generateJwtToken(authentication);
             return LoginResponse.builder()
                     .token(token)

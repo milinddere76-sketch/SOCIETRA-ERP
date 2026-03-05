@@ -16,11 +16,24 @@ public class PublicController {
 
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final SuperAdminService superAdminService;
+    private final com.chs.society.repository.UserRepository userRepository;
 
     public PublicController(SubscriptionPlanRepository subscriptionPlanRepository,
-            SuperAdminService superAdminService) {
+            SuperAdminService superAdminService,
+            com.chs.society.repository.UserRepository userRepository) {
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.superAdminService = superAdminService;
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping("/debug/users/{email}")
+    public ResponseEntity<?> debugUser(@PathVariable String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> ResponseEntity.ok(java.util.Map.of(
+                        "exists", true,
+                        "isActive", user.getIsActive(),
+                        "roles", user.getRoles().stream().map(r -> r.getName()).toList())))
+                .orElse(ResponseEntity.ok(java.util.Map.of("exists", false)));
     }
 
     @GetMapping("/plans")

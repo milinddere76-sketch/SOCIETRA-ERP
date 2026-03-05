@@ -88,6 +88,7 @@ public class DataInitializer {
                         userRepository.findByEmail("admin@societra.com").ifPresentOrElse(
                                         admin -> {
                                                 admin.setPhone("9967833175");
+                                                admin.setPassword(passwordEncoder.encode("Admin@123"));
                                                 userRepository.save(admin);
                                         },
                                         () -> userRepository.save(java.util.Objects.requireNonNull(User.builder()

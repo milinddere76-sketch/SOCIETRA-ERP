@@ -149,6 +149,13 @@ public class SuperAdminService {
 
         // Also create a Society Admin User if email provided
         if (request.getAdminEmail() != null && !request.getAdminEmail().isEmpty()) {
+            Role secretaryRole = roleRepository.findByName("ROLE_SOCIETY_ADMIN")
+                    .orElseThrow(() -> new RuntimeException("Society Admin Role not found"));
+
+            String password = (request.getAdminPassword() != null && !request.getAdminPassword().isEmpty())
+                    ? request.getAdminPassword()
+                    : "Temp@123";
+
             // Find or create admin user
             User adminUser = userRepository.findByEmail(request.getAdminEmail()).orElseGet(() -> User.builder()
                     .email(request.getAdminEmail())
@@ -164,11 +171,8 @@ public class SuperAdminService {
 
             userRepository.save(java.util.Objects.requireNonNull(adminUser));
         }
-    }
 
-    return
-
-    mapToSocietyDto(society);
+        return mapToSocietyDto(society);
     }
 
     @Transactional

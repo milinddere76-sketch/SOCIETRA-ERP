@@ -85,17 +85,20 @@ public class DataInitializer {
                         roleRepository.save(java.util.Objects.requireNonNull(memberRole));
 
                         // Seed Super Admin
-                        if (userRepository.findByEmail("admin@societra.com").isEmpty()) {
-                                userRepository.save(java.util.Objects.requireNonNull(User.builder()
-                                                .email("admin@societra.com")
-                                                .password(passwordEncoder.encode("Admin@123"))
-                                                .firstName("SOCIETRA")
-                                                .lastName("SuperAdmin")
-                                                .phone("+911234567890")
-                                                .roles(Set.of(adminRole))
-                                                .isActive(true)
-                                                .build()));
-                        }
+                        userRepository.findByEmail("admin@societra.com").ifPresentOrElse(
+                                        admin -> {
+                                                admin.setPhone("9967833175");
+                                                userRepository.save(admin);
+                                        },
+                                        () -> userRepository.save(java.util.Objects.requireNonNull(User.builder()
+                                                        .email("admin@societra.com")
+                                                        .password(passwordEncoder.encode("Admin@123"))
+                                                        .firstName("SOCIETRA")
+                                                        .lastName("SuperAdmin")
+                                                        .phone("9967833175")
+                                                        .roles(Set.of(adminRole))
+                                                        .isActive(true)
+                                                        .build())));
                 };
         }
 

@@ -28,7 +28,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        sync: false # Set to your backend URL (e.g., https://societra-backend.onrender.com)
+        value: https://societra-backend.onrender.com
     routes:
       - type: rewrite
         source: /*

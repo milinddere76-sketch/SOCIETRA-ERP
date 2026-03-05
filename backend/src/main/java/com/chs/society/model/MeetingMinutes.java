@@ -45,6 +45,6 @@ public class MeetingMinutes extends BaseEntity {
     private String status = "DRAFT"; // DRAFT, PUBLISHED, ARCHIVED
 
     public enum MeetingType {
-        AGM, SGM, COMMITTEE, EMERGENCY
+        AGM, SGM, COMMITTEE, EMERGENCY, SPECIAL
     }
 }

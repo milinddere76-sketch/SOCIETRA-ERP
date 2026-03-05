@@ -32,6 +32,7 @@ public class MeetingMinutesService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public MeetingMinutesDto saveMeeting(String email, MeetingMinutesDto dto) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getSociety() == null)
@@ -46,14 +47,18 @@ public class MeetingMinutesService {
             try {
                 entity.setType(MeetingMinutes.MeetingType.valueOf(dto.getType().toUpperCase()));
             } catch (Exception e) {
+                // Fallback or ignore if invalid type
             }
         }
 
-        // Parse date if provided, else use now
+        // Robust Date Parsing
         if (dto.getDate() != null && !dto.getDate().isEmpty()) {
             try {
-                // Assuming format yyyy-MM-dd
-                entity.setMeetingDate(java.time.LocalDate.parse(dto.getDate()).atStartOfDay());
+                if (dto.getDate().contains("T")) {
+                    entity.setMeetingDate(LocalDateTime.parse(dto.getDate()));
+                } else {
+                    entity.setMeetingDate(java.time.LocalDate.parse(dto.getDate()).atStartOfDay());
+                }
             } catch (Exception e) {
                 entity.setMeetingDate(LocalDateTime.now());
             }
@@ -62,48 +67,54 @@ public class MeetingMinutesService {
         }
 
         entity.setDescription(dto.getNotes() != null ? dto.getNotes() : "");
-        entity.setStatus("PUBLISHED");
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : "PUBLISHED");
         if (dto.getAttendanceIds() != null) {
             entity.setAttendanceIds(dto.getAttendanceIds());
         }
 
         repository.save(java.util.Objects.requireNonNull(entity));
 
-        // Notifications — using admin's contact as sender identity
+        // Notifications loop wrapped in try-catch to prevent transaction ROLLBACK on
+        // notification failure
         if (dto.isNotifyMembers()) {
-            List<User> staffAndMembers = userRepository.findBySocietyId(society.getId());
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
-            String dateStr = entity.getMeetingDate().format(fmt);
-            String societyName = society.getName();
-            // Admin acts as the organiser
-            String adminName = user.getFirstName() + " " + user.getLastName();
-            String adminEmail = user.getEmail();
+            try {
+                List<User> staffAndMembers = userRepository.findBySocietyId(society.getId());
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
+                String dateStr = entity.getMeetingDate().format(fmt);
+                String societyName = society.getName();
+                String adminName = user.getFirstName() + " " + user.getLastName();
+                String adminEmail = user.getEmail();
 
-            for (User u : staffAndMembers) {
-                String memberName = u.getFirstName() + " " + u.getLastName();
-                String dashMsg = String.format("Meeting '%s' (%s) on %s at %s.",
-                        entity.getTitle(), entity.getType(), dateStr, entity.getVenue());
-                notificationService.createNotification(u, "📅 Meeting Scheduled", dashMsg, "MEETING");
+                for (User u : staffAndMembers) {
+                    try {
+                        String memberName = u.getFirstName() + " " + u.getLastName();
+                        String dashMsg = String.format("Meeting '%s' (%s) on %s at %s.",
+                                entity.getTitle(), entity.getType(), dateStr, entity.getVenue());
+                        notificationService.createNotification(u, "📅 Meeting Scheduled", dashMsg, "MEETING");
 
-                if (u.getEmail() != null) {
-                    emailService.sendMeetingInviteEmail(
-                            u.getEmail(), memberName,
-                            entity.getTitle(), entity.getType() != null ? entity.getType().name() : "",
-                            dateStr, entity.getVenue(), entity.getDescription(),
-                            societyName, adminName, adminEmail);
+                        if (u.getEmail() != null) {
+                            emailService.sendMeetingInviteEmail(
+                                    u.getEmail(), memberName,
+                                    entity.getTitle(), entity.getType() != null ? entity.getType().name() : "",
+                                    dateStr, entity.getVenue(), entity.getDescription(),
+                                    societyName, adminName, adminEmail);
+                        }
+                        if (u.getPhone() != null) {
+                            whatsappService.sendMeetingAlert(u.getPhone(),
+                                    entity.getTitle(), dateStr, entity.getVenue());
+                        }
+                    } catch (Exception memberNotifyError) {
+                        // Log and continue to next member
+                    }
                 }
-                if (u.getPhone() != null) {
-                    whatsappService.sendMeetingAlert(u.getPhone(),
-                            entity.getTitle(), dateStr, entity.getVenue());
-                }
-            }
 
-            // Also notify admin themselves as CC/confirmation
-            if (adminEmail != null) {
-                notificationService.sendEmail(adminEmail, "Meeting Published: " + entity.getTitle(),
-                        String.format(
-                                "You have scheduled a meeting '%s' on %s at %s. Notifications sent to %d member(s).",
-                                entity.getTitle(), dateStr, entity.getVenue(), staffAndMembers.size()));
+                if (adminEmail != null) {
+                    notificationService.sendEmail(adminEmail, "Meeting Published: " + entity.getTitle(),
+                            String.format("Meeting '%s' scheduled for %s. Notifications triggered.",
+                                    entity.getTitle(), dateStr));
+                }
+            } catch (Exception notifyError) {
+                // Log notification system failure
             }
         }
 

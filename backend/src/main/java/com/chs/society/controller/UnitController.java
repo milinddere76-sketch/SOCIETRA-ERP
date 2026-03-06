@@ -53,13 +53,20 @@ public class UnitController {
 
     @GetMapping("/wings")
     @PreAuthorize("hasAuthority('MANAGE_UNITS')")
-    public ResponseEntity<List<WingDto>> getWings(Authentication auth) {
+    public ResponseEntity<List<WingDto>> getWings(Authentication auth, @RequestParam(required = false) UUID societyId) {
+        if (societyId != null) {
+            return ResponseEntity.ok(unitService.getWingsBySocietyId(societyId));
+        }
         return ResponseEntity.ok(unitService.getWingsBySociety(auth.getName()));
     }
 
     @PostMapping("/wings")
     @PreAuthorize("hasAuthority('MANAGE_UNITS')")
-    public ResponseEntity<WingDto> addWing(Authentication auth, @RequestBody WingDto wingDto) {
+    public ResponseEntity<WingDto> addWing(Authentication auth, @RequestBody WingDto wingDto,
+            @RequestParam(required = false) UUID societyId) {
+        if (societyId != null) {
+            return ResponseEntity.ok(unitService.addWingForSocietyId(societyId, wingDto.getName()));
+        }
         return ResponseEntity.ok(unitService.addWing(auth.getName(), wingDto.getName()));
     }
 }

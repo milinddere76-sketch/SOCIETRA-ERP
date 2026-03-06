@@ -6,6 +6,7 @@ import com.chs.society.model.Society;
 import com.chs.society.model.Unit;
 import com.chs.society.model.User;
 import com.chs.society.model.Wing;
+import com.chs.society.repository.SocietyRepository;
 import com.chs.society.repository.UnitRepository;
 import com.chs.society.repository.UserRepository;
 import com.chs.society.repository.WingRepository;
@@ -22,11 +23,14 @@ public class UnitService {
     private final UnitRepository unitRepository;
     private final WingRepository wingRepository;
     private final UserRepository userRepository;
+    private final SocietyRepository societyRepository;
 
-    public UnitService(UnitRepository unitRepository, WingRepository wingRepository, UserRepository userRepository) {
+    public UnitService(UnitRepository unitRepository, WingRepository wingRepository, UserRepository userRepository,
+            SocietyRepository societyRepository) {
         this.unitRepository = unitRepository;
         this.wingRepository = wingRepository;
         this.userRepository = userRepository;
+        this.societyRepository = societyRepository;
     }
 
     public List<UnitDto> getUnitsBySociety(String adminEmail) {
@@ -50,7 +54,11 @@ public class UnitService {
         if (admin.getSociety() == null)
             return List.of();
 
-        return wingRepository.findBySocietyId(admin.getSociety().getId()).stream()
+        return getWingsBySocietyId(admin.getSociety().getId());
+    }
+
+    public List<WingDto> getWingsBySocietyId(UUID societyId) {
+        return wingRepository.findBySocietyId(societyId).stream()
                 .map(w -> WingDto.builder().id(w.getId()).name(w.getName()).build())
                 .collect(Collectors.toList());
     }
@@ -148,6 +156,13 @@ public class UnitService {
     public WingDto addWing(String adminEmail, String name) {
         User admin = userRepository.findByEmail(adminEmail).orElseThrow();
         Society society = admin.getSociety();
+        return addWingForSocietyId(society.getId(), name);
+    }
+
+    @Transactional
+    public WingDto addWingForSocietyId(UUID societyId, String name) {
+        Society society = societyRepository.findById(societyId)
+                .orElseThrow(() -> new RuntimeException("Society not found"));
         Wing wing = Wing.builder().name(name).society(society).build();
         wing = wingRepository.save(java.util.Objects.requireNonNull(wing));
         return WingDto.builder().id(wing.getId()).name(wing.getName()).build();

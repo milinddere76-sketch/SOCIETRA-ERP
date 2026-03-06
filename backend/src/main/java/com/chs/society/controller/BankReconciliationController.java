@@ -26,24 +26,40 @@ public class BankReconciliationController {
     private final BankStatementEntryRepository entryRepository;
     private final UserRepository userRepository;
     private final FinancialTransactionRepository transactionRepository;
+    private final SocietyRepository societyRepository;
 
     @GetMapping("/bank")
-    public ResponseEntity<BankDetail> getBankDetails(Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
-        if (user.getSociety() == null)
-            return ResponseEntity.status(403).build();
+    public ResponseEntity<BankDetail> getBankDetails(Authentication auth,
+            @RequestParam(required = false) UUID societyId) {
+        UUID targetSocietyId = societyId;
+        if (targetSocietyId == null) {
+            User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+            if (user.getSociety() == null)
+                return ResponseEntity.status(403).build();
+            targetSocietyId = user.getSociety().getId();
+        }
         return ResponseEntity
-                .ok(bankDetailRepository.findBySocietyId(user.getSociety().getId()).orElse(new BankDetail()));
+                .ok(bankDetailRepository.findBySocietyId(targetSocietyId).orElse(new BankDetail()));
     }
 
     @PostMapping("/bank")
-    public ResponseEntity<BankDetail> saveBankDetails(Authentication auth, @RequestBody BankDetail details) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
-        if (user.getSociety() == null)
-            return ResponseEntity.status(403).build();
+    public ResponseEntity<BankDetail> saveBankDetails(Authentication auth, @RequestBody BankDetail details,
+            @RequestParam(required = false) UUID societyId) {
+        UUID targetSocietyId = societyId;
+        Society targetSociety;
+        if (targetSocietyId == null) {
+            User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+            if (user.getSociety() == null)
+                return ResponseEntity.status(403).build();
+            targetSociety = user.getSociety();
+            targetSocietyId = targetSociety.getId();
+        } else {
+            targetSociety = societyRepository.findById(targetSocietyId)
+                    .orElseThrow(() -> new RuntimeException("Society not found"));
+        }
 
-        BankDetail existing = bankDetailRepository.findBySocietyId(user.getSociety().getId()).orElse(new BankDetail());
-        existing.setSociety(user.getSociety());
+        BankDetail existing = bankDetailRepository.findBySocietyId(targetSocietyId).orElse(new BankDetail());
+        existing.setSociety(targetSociety);
         existing.setBankName(details.getBankName());
         existing.setAccountNumber(details.getAccountNumber());
         existing.setIfscCode(details.getIfscCode());

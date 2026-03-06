@@ -69,13 +69,15 @@ const SocietySettings = () => {
 
     useEffect(() => {
         if (isSuperAdmin) {
-            api.get('/society/all').then(res => {
+            setLoading(true);
+            api.get('/superadmin/societies').then(res => {
                 const societies = Array.isArray(res.data) ? res.data : [];
                 setAllSocieties(societies);
                 if (societies.length > 0 && !selectedSocietyId) {
                     setSelectedSocietyId(societies[0].id);
                 }
-            }).catch(err => console.warn('Could not load societies:', err));
+            }).catch(err => console.warn('Could not load societies:', err))
+                .finally(() => setLoading(false));
         } else {
             fetchData();
         }
@@ -86,9 +88,11 @@ const SocietySettings = () => {
         fetchData();
     }, [activeTab, selectedSocietyId]);
 
-    const getBaseUrl = (base) => isSuperAdmin && selectedSocietyId
-        ? `${base}?societyId=${selectedSocietyId}`
-        : base;
+    const getBaseUrl = (base) => {
+        if (!isSuperAdmin || !selectedSocietyId) return base;
+        const separator = base.includes('?') ? '&' : '?';
+        return `${base}${separator}societyId=${selectedSocietyId}`;
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -129,7 +133,7 @@ const SocietySettings = () => {
                 }
             }
             if (activeTab === 'bank') {
-                const res = await api.get(getBaseUrl('/accounting/setup/bank'));
+                const res = await api.get(getBaseUrl('/accounting/reconcile/bank'));
                 if (res.data) setBankDetails(res.data);
             }
         } catch (err) {
@@ -237,7 +241,7 @@ const SocietySettings = () => {
     const handleRemoveCommitteeMember = async (id) => {
         if (!window.confirm("Remove this committee member?")) return;
         try {
-            await api.delete(`/accounting/setup/committee/${id}`);
+            await api.delete(getBaseUrl(`/accounting/setup/committee/${id}`));
             fetchData();
             showToast('Member removed.');
         } catch (err) {
@@ -597,7 +601,7 @@ const SocietySettings = () => {
                                         </div>
                                         <button onClick={async () => {
                                             try {
-                                                await api.post('/accounting/setup/bank', bankDetails);
+                                                await api.post(getBaseUrl('/accounting/reconcile/bank'), bankDetails);
                                                 showToast('Bank details updated!');
                                             } catch (err) { showToast('Failed to save bank details.', 'error'); }
                                         }} className="btn btn-primary px-8 shadow-xl shadow-primary/30 flex items-center gap-2">

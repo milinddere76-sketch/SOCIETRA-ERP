@@ -8,6 +8,7 @@ import com.chs.society.repository.MeetingMinutesRepository;
 import com.chs.society.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

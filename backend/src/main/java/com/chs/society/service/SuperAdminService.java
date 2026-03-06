@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 import java.util.Set;
@@ -28,6 +30,7 @@ public class SuperAdminService {
     private final com.chs.society.repository.SubscriptionPlanRepository subscriptionPlanRepository;
     private final PasswordEncoder passwordEncoder;
     private final jakarta.persistence.EntityManager entityManager;
+    private final ObjectMapper objectMapper;
 
     private final com.chs.society.repository.MaintenanceBillRepository maintenanceBillRepository;
     private final com.chs.society.repository.ReceiptRepository receiptRepository;
@@ -72,7 +75,8 @@ public class SuperAdminService {
             com.chs.society.repository.UnitRepository unitRepository,
             com.chs.society.repository.WingRepository wingRepository,
             com.chs.society.repository.FinancialYearRepository financialYearRepository,
-            com.chs.society.repository.MeetingRSVPRepository rsvpRepository) {
+            com.chs.society.repository.MeetingRSVPRepository rsvpRepository,
+            ObjectMapper objectMapper) {
         this.societyRepository = societyRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -98,6 +102,7 @@ public class SuperAdminService {
         this.wingRepository = wingRepository;
         this.financialYearRepository = financialYearRepository;
         this.rsvpRepository = rsvpRepository;
+        this.objectMapper = objectMapper;
     }
 
     public List<SocietyDto> getAllSocieties() {
@@ -156,10 +161,24 @@ public class SuperAdminService {
                     .isApproved(autoApprove)
                     .subscriptionPlan(plan)
                     .subscriptionExpiry(expiry)
-                    .memberLimit(request.getMemberLimit() != null ? request.getMemberLimit() : 50)
-                    .build();
+                    .memberLimit(request.getMemberLimit() != null ? request.getMemberLimit() : 50);
 
-            society = societyRepository.save(java.util.Objects.requireNonNull(society));
+            if (request.getEnabledFeatures() != null) {
+                try {
+                    society.enabledFeatures(objectMapper.writeValueAsString(request.getEnabledFeatures()));
+                } catch (Exception e) {
+                    log.error("Failed to serialize features", e);
+                }
+            } else {
+                List<String> defaults = List.of("FEATURE_GLOBAL", "FEATURE_GOVERNANCE", "FEATURE_COMMUNITY");
+                try {
+                    society.enabledFeatures(objectMapper.writeValueAsString(defaults));
+                } catch (Exception e) {
+                    log.error("Failed to serialize default features", e);
+                }
+            }
+
+            Society savedSociety = societyRepository.save(java.util.Objects.requireNonNull(society.build()));
 
             // Also create a Society Admin User if email provided
             if (request.getAdminEmail() != null && !request.getAdminEmail().isEmpty()) {
@@ -208,6 +227,14 @@ public class SuperAdminService {
         society.setAdminMobile(request.getAdminMobile());
         if (request.getMemberLimit() != null) {
             society.setMemberLimit(request.getMemberLimit());
+        }
+
+        if (request.getEnabledFeatures() != null) {
+            try {
+                society.setEnabledFeatures(objectMapper.writeValueAsString(request.getEnabledFeatures()));
+            } catch (Exception e) {
+                log.error("Failed to serialize features during edit", e);
+            }
         }
 
         // Update user if needed
@@ -353,6 +380,18 @@ public class SuperAdminService {
         dto.setAdminMobile(society.getAdminMobile());
         dto.setStatus(society.getStatus().name());
         dto.setMemberLimit(society.getMemberLimit());
+        dto.setApproved(society.isApproved());
+
+        if (society.getEnabledFeatures() != null) {
+            try {
+                dto.setEnabledFeatures(objectMapper.readValue(society.getEnabledFeatures(),
+                        new TypeReference<List<String>>() {
+                        }));
+            } catch (Exception e) {
+                log.error("Failed to deserialize features for society {}", society.getId(), e);
+            }
+        }
+
         return dto;
     }
 }

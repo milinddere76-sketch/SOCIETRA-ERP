@@ -19,4 +19,5 @@ public class SocietyDto {
     private String status;
     private Integer memberLimit;
     private boolean approved;
+    private java.util.List<String> enabledFeatures;
 }

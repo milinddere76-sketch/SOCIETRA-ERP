@@ -98,6 +98,21 @@ public class AuthService {
             societyData.put("pincode", user.getSociety().getPincode());
             societyData.put("state", user.getSociety().getState());
             societyData.put("country", user.getSociety().getCountry());
+
+            if (user.getSociety().getEnabledFeatures() != null) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    java.util.List<String> features = mapper.readValue(user.getSociety().getEnabledFeatures(),
+                            new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {
+                            });
+                    societyData.put("enabledFeatures", features);
+                } catch (Exception e) {
+                    societyData.put("enabledFeatures", java.util.Collections.emptyList());
+                }
+            } else {
+                societyData.put("enabledFeatures", java.util.Collections.emptyList());
+            }
+
             response.put("society", societyData);
         }
 

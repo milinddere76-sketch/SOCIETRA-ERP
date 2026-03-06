@@ -50,31 +50,37 @@ const Sidebar = () => {
 
     const societyAdminMenu = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
-        { name: 'Society Settings', icon: <Settings size={20} />, path: '/society-settings' },
-        { name: 'Maintenance', icon: <Receipt size={20} />, path: '/billing' },
-        { name: 'Accounting', icon: <Wallet size={20} />, path: '/accounting' },
-        { name: 'Accounting Setup', icon: <Settings size={20} />, path: '/accounting/setup' },
-        { name: 'Statutory Records', icon: <FileText size={20} />, path: '/records' },
-        { name: 'Share Certificates', icon: <Award size={20} />, path: '/certificates' },
-        { name: 'AI Intelligence', icon: <BrainCircuit size={20} />, path: '/intelligence' },
-        { name: 'Meeting Minutes', icon: <MessageSquare size={20} />, path: '/meetings' },
-        { name: 'Gate Security', icon: <Shield size={20} />, path: '/security' },
-        { name: 'Asset Management', icon: <Box size={20} />, path: '/assets' },
-        { name: 'Helpdesk', icon: <MessageSquare size={20} />, path: '/complaints' },
-        { name: 'Members', icon: <Users size={20} />, path: '/members' },
+        { name: 'Society Settings', icon: <Settings size={20} />, path: '/society-settings', feature: 'FEATURE_GOVERNANCE' },
+        { name: 'Maintenance', icon: <Receipt size={20} />, path: '/billing', feature: 'FEATURE_FINANCIAL' },
+        { name: 'Accounting', icon: <Wallet size={20} />, path: '/accounting', feature: 'FEATURE_FINANCIAL' },
+        { name: 'Accounting Setup', icon: <Settings size={20} />, path: '/accounting/setup', feature: 'FEATURE_FINANCIAL' },
+        { name: 'Statutory Records', icon: <FileText size={20} />, path: '/records', feature: 'FEATURE_COMPLIANCE' },
+        { name: 'Share Certificates', icon: <Award size={20} />, path: '/certificates', feature: 'FEATURE_COMPLIANCE' },
+        { name: 'AI Intelligence', icon: <BrainCircuit size={20} />, path: '/intelligence', feature: 'FEATURE_COMMUNITY' },
+        { name: 'Meeting Minutes', icon: <MessageSquare size={20} />, path: '/meetings', feature: 'FEATURE_COMMUNITY' },
+        { name: 'Gate Security', icon: <Shield size={20} />, path: '/security', feature: 'FEATURE_COMMUNITY' },
+        { name: 'Asset Management', icon: <Box size={20} />, path: '/assets', feature: 'FEATURE_COMMUNITY' },
+        { name: 'Helpdesk', icon: <MessageSquare size={20} />, path: '/complaints', feature: 'FEATURE_COMMUNITY' },
+        { name: 'Members', icon: <Users size={20} />, path: '/members', feature: 'FEATURE_GOVERNANCE' },
     ];
 
     const memberMenu = [
-        { name: 'Resident Hub', icon: <LayoutDashboard size={20} />, path: '/resident/dashboard' },
-        { name: 'My Bills', icon: <Receipt size={20} />, path: '/resident/bills' },
-        { name: 'Raise Complaint', icon: <MessageSquare size={20} />, path: '/resident/complaints' },
-        { name: 'My Society', icon: <Building2 size={20} />, path: '/resident/society' },
+        { name: 'Resident Hub', icon: <LayoutDashboard size={20} />, path: '/resident/dashboard', feature: 'FEATURE_GOVERNANCE' },
+        { name: 'My Bills', icon: <Receipt size={20} />, path: '/resident/bills', feature: 'FEATURE_FINANCIAL' },
+        { name: 'Raise Complaint', icon: <MessageSquare size={20} />, path: '/resident/complaints', feature: 'FEATURE_COMMUNITY' },
+        { name: 'My Society', icon: <Building2 size={20} />, path: '/resident/society', feature: 'FEATURE_GOVERNANCE' },
         { name: 'My Profile', icon: <Users size={20} />, path: '/resident/profile' },
     ];
 
+    const filterMenu = (menu) => {
+        if (normalizedRole === 'SUPER_ADMIN') return menu;
+        const enabledFeatures = profile?.society?.enabledFeatures || [];
+        return menu.filter(item => !item.feature || enabledFeatures.includes(item.feature));
+    };
+
     const menuItems = normalizedRole === 'SUPER_ADMIN' ? superAdminMenu :
-        normalizedRole === 'MEMBER' ? memberMenu :
-            societyAdminMenu;
+        normalizedRole === 'MEMBER' ? filterMenu(memberMenu) :
+            filterMenu(societyAdminMenu);
 
     return (
         <aside className="sidebar group/sidebar">

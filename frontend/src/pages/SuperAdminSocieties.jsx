@@ -8,6 +8,14 @@ const SuperAdminSocieties = () => {
     const [societies, setSocieties] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const FEATURES = [
+        { id: 'FEATURE_GLOBAL', name: 'Global Platform Mgmt', desc: 'Lifecycle, Onboarding, Global Users' },
+        { id: 'FEATURE_GOVERNANCE', name: 'Society Governance', desc: 'Wings, Units, Committee, RBAC' },
+        { id: 'FEATURE_FINANCIAL', name: 'Financial Management', desc: 'Billing, Receipts, QR Payments' },
+        { id: 'FEATURE_COMPLIANCE', name: 'Statutory Compliance', desc: 'Share Certificates, Audit Records' },
+        { id: 'FEATURE_COMMUNITY', name: 'Community & Ops', desc: 'Meetings, Helpdesk, Security Logs' }
+    ];
+
     const initialFormState = {
         name: '',
         registrationNumber: '',
@@ -15,11 +23,13 @@ const SuperAdminSocieties = () => {
         pincode: '',
         state: '',
         country: 'India',
+        address: '',
         adminEmail: '',
         adminPassword: '',
         adminMobile: '',
         memberLimit: 50,
-        subscriptionPlan: 'DEMO'
+        subscriptionPlan: 'DEMO',
+        enabledFeatures: ['FEATURE_GLOBAL', 'FEATURE_GOVERNANCE', 'FEATURE_COMMUNITY']
     };
     const [formData, setFormData] = useState(initialFormState);
     const [editingId, setEditingId] = useState(null);
@@ -73,6 +83,7 @@ const SuperAdminSocieties = () => {
             adminMobile: soc.adminMobile || '',
             memberLimit: soc.memberLimit || 50,
             subscriptionPlan: soc.subscriptionPlan || 'DEMO',
+            enabledFeatures: soc.enabledFeatures || ['FEATURE_GLOBAL', 'FEATURE_GOVERNANCE', 'FEATURE_COMMUNITY'],
             adminPassword: ''
         });
         setEditingId(soc.id);
@@ -189,6 +200,43 @@ const SuperAdminSocieties = () => {
                                 </select>
                             </div>
                         </div>
+
+                        {/* Feature Toggles Section */}
+                        <div className="pt-6 border-t border-glass-border">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4 ml-1">Feature Access Management</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {FEATURES.map(feature => (
+                                    <label key={feature.id} className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer group ${formData.enabledFeatures?.includes(feature.id)
+                                        ? 'bg-primary/5 border-primary shadow-sm'
+                                        : 'bg-surface-light border-glass-border hover:border-text-muted'
+                                        }`}>
+                                        <div className="relative flex items-center mt-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.enabledFeatures?.includes(feature.id)}
+                                                onChange={() => {
+                                                    const current = formData.enabledFeatures || [];
+                                                    const next = current.includes(feature.id)
+                                                        ? current.filter(id => id !== feature.id)
+                                                        : [...current, feature.id];
+                                                    setFormData({ ...formData, enabledFeatures: next });
+                                                }}
+                                                className="w-5 h-5 rounded border-glass-border text-primary focus:ring-primary/20 cursor-pointer"
+                                            />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <p className={`text-sm font-black uppercase ${formData.enabledFeatures?.includes(feature.id) ? 'text-primary' : 'text-text'}`}>
+                                                {feature.name}
+                                            </p>
+                                            <p className="text-[10px] text-text-muted font-bold leading-tight uppercase">
+                                                {feature.desc}
+                                            </p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="flex justify-end gap-3 pt-6 border-t border-glass-border">
                             <button type="button" onClick={() => { setIsCreating(false); setEditingId(null); }} className="btn btn-secondary px-8">Cancel</button>
                             <button type="submit" className="btn btn-primary px-10 shadow-lg shadow-primary/30 font-bold">{editingId ? 'Update Society' : 'Deploy Society'}</button>

@@ -65,6 +65,9 @@ public class Society extends BaseEntity {
 
     private Integer recurringBillingDay;
 
+    @Column(columnDefinition = "TEXT")
+    private String enabledFeatures; // JSON string of feature keys
+
     public enum SocietyStatus {
         PENDING, ACTIVE, SUSPENDED
     }

@@ -17,4 +17,5 @@ public class CreateSocietyRequest {
     private Integer memberLimit;
     private java.util.UUID planId;
     private String subscriptionPlan; // For frontend string plans
+    private java.util.List<String> enabledFeatures;
 }

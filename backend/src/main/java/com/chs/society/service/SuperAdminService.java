@@ -199,13 +199,13 @@ public class SuperAdminService {
                 adminUser.setFirstName("Admin");
                 adminUser.setLastName(request.getName());
                 adminUser.setRoles(Set.of(secretaryRole));
-                adminUser.setSociety(society);
+                adminUser.setSociety(savedSociety);
                 adminUser.setActive(true);
 
                 userRepository.save(java.util.Objects.requireNonNull(adminUser));
             }
 
-            return mapToSocietyDto(society);
+            return mapToSocietyDto(savedSociety);
         } catch (Exception e) {
             log.error("Failed to create society: {}", e.getMessage(), e);
             throw new RuntimeException("Error saving society: " + e.getMessage());

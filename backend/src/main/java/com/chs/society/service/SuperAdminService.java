@@ -322,6 +322,14 @@ public class SuperAdminService {
     }
 
     @Transactional
+    public void deleteSocietyByCode(String code) {
+        log.info("Deleting society by code: {}", code);
+        Society society = societyRepository.findBySocietyCode(code)
+                .orElseThrow(() -> new RuntimeException("Society not found with code: " + code));
+        deleteSociety(society.getId());
+    }
+
+    @Transactional
     public SocietyDto approveSociety(UUID id) {
         Society society = societyRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Society not found"));

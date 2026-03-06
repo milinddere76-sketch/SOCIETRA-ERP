@@ -59,6 +59,13 @@ public class SuperAdminController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/societies/code/{code}")
+    @PreAuthorize("hasAuthority('MANAGE_SOCIETY')")
+    public ResponseEntity<Void> deleteSocietyByCode(@PathVariable String code) {
+        superAdminService.deleteSocietyByCode(code);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/societies/{id}/approve")
     @PreAuthorize("hasAuthority('MANAGE_SOCIETY')")
     public ResponseEntity<SocietyDto> approveSociety(@PathVariable UUID id) {

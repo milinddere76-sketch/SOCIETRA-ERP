@@ -50,25 +50,25 @@ const Sidebar = () => {
 
     const societyAdminMenu = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
-        { name: 'Society Settings', icon: <Settings size={20} />, path: '/society-settings', feature: 'FEATURE_GOVERNANCE' },
-        { name: 'Maintenance', icon: <Receipt size={20} />, path: '/billing', feature: 'FEATURE_FINANCIAL' },
-        { name: 'Accounting', icon: <Wallet size={20} />, path: '/accounting', feature: 'FEATURE_FINANCIAL' },
-        { name: 'Accounting Setup', icon: <Settings size={20} />, path: '/accounting/setup', feature: 'FEATURE_FINANCIAL' },
-        { name: 'Statutory Records', icon: <FileText size={20} />, path: '/records', feature: 'FEATURE_COMPLIANCE' },
-        { name: 'Share Certificates', icon: <Award size={20} />, path: '/certificates', feature: 'FEATURE_COMPLIANCE' },
-        { name: 'AI Intelligence', icon: <BrainCircuit size={20} />, path: '/intelligence', feature: 'FEATURE_COMMUNITY' },
-        { name: 'Meeting Minutes', icon: <MessageSquare size={20} />, path: '/meetings', feature: 'FEATURE_COMMUNITY' },
-        { name: 'Gate Security', icon: <Shield size={20} />, path: '/security', feature: 'FEATURE_COMMUNITY' },
-        { name: 'Asset Management', icon: <Box size={20} />, path: '/assets', feature: 'FEATURE_COMMUNITY' },
-        { name: 'Helpdesk', icon: <MessageSquare size={20} />, path: '/complaints', feature: 'FEATURE_COMMUNITY' },
-        { name: 'Members', icon: <Users size={20} />, path: '/members', feature: 'FEATURE_GOVERNANCE' },
+        { name: 'Society Settings', icon: <Settings size={20} />, path: '/society-settings', feature: 'FEAT_RBAC' },
+        { name: 'Society Structure', icon: <Building2 size={20} />, path: '/society-settings', feature: 'FEAT_SOCIETY_STRUCT' },
+        { name: 'Maintenance', icon: <Receipt size={20} />, path: '/billing', feature: 'FEAT_BILLING' },
+        { name: 'Accounting', icon: <Wallet size={20} />, path: '/accounting', feature: 'FEAT_ACCOUNTING' },
+        { name: 'Vouchers', icon: <FileText size={20} />, path: '/accounting/vouchers', feature: 'FEAT_VOUCHERS' },
+        { name: 'Share Certificates', icon: <Award size={20} />, path: '/certificates', feature: 'FEAT_SHARE_CERT' },
+        { name: 'Documents', icon: <FileText size={20} />, path: '/records', feature: 'FEAT_DOCUMENTS' },
+        { name: 'Meeting Minutes', icon: <MessageSquare size={20} />, path: '/meetings', feature: 'FEAT_MEETINGS' },
+        { name: 'Gate Security', icon: <Shield size={20} />, path: '/security', feature: 'FEAT_VISITORS' },
+        { name: 'Asset Management', icon: <Box size={20} />, path: '/assets', feature: 'FEAT_ASSETS' },
+        { name: 'Helpdesk', icon: <MessageSquare size={20} />, path: '/complaints', feature: 'FEAT_COMPLAINTS' },
+        { name: 'Members', icon: <Users size={20} />, path: '/members', feature: 'FEAT_RESIDENTS' },
     ];
 
     const memberMenu = [
-        { name: 'Resident Hub', icon: <LayoutDashboard size={20} />, path: '/resident/dashboard', feature: 'FEATURE_GOVERNANCE' },
-        { name: 'My Bills', icon: <Receipt size={20} />, path: '/resident/bills', feature: 'FEATURE_FINANCIAL' },
-        { name: 'Raise Complaint', icon: <MessageSquare size={20} />, path: '/resident/complaints', feature: 'FEATURE_COMMUNITY' },
-        { name: 'My Society', icon: <Building2 size={20} />, path: '/resident/society', feature: 'FEATURE_GOVERNANCE' },
+        { name: 'Resident Hub', icon: <LayoutDashboard size={20} />, path: '/resident/dashboard' },
+        { name: 'My Bills', icon: <Receipt size={20} />, path: '/resident/bills', feature: 'FEAT_BILLING' },
+        { name: 'Raise Complaint', icon: <MessageSquare size={20} />, path: '/resident/complaints', feature: 'FEAT_COMPLAINTS' },
+        { name: 'My Society', icon: <Building2 size={20} />, path: '/resident/society' },
         { name: 'My Profile', icon: <Users size={20} />, path: '/resident/profile' },
     ];
 

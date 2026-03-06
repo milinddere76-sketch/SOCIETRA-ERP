@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Plus, Edit2, Trash2, Shield, CheckCircle, XCircle, RefreshCw, IndianRupee } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, Shield, CheckCircle, XCircle, RefreshCw, IndianRupee, Layers, CreditCard, FileCheck, Users } from 'lucide-react';
 import api from '../api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FEATURE_DETAILS } from '../constants/features';
 
 const SuperAdminSocieties = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [societies, setSocieties] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const FEATURES = [
-        { id: 'FEATURE_GLOBAL', name: 'Global Platform Mgmt', desc: 'Lifecycle, Onboarding, Global Users' },
-        { id: 'FEATURE_GOVERNANCE', name: 'Society Governance', desc: 'Wings, Units, Committee, RBAC' },
-        { id: 'FEATURE_FINANCIAL', name: 'Financial Management', desc: 'Billing, Receipts, QR Payments' },
-        { id: 'FEATURE_COMPLIANCE', name: 'Statutory Compliance', desc: 'Share Certificates, Audit Records' },
-        { id: 'FEATURE_COMMUNITY', name: 'Community & Ops', desc: 'Meetings, Helpdesk, Security Logs' }
-    ];
 
     const initialFormState = {
         name: '',
@@ -29,7 +22,7 @@ const SuperAdminSocieties = () => {
         adminMobile: '',
         memberLimit: 50,
         subscriptionPlan: 'DEMO',
-        enabledFeatures: ['FEATURE_GLOBAL', 'FEATURE_GOVERNANCE', 'FEATURE_COMMUNITY']
+        enabledFeatures: []
     };
     const [formData, setFormData] = useState(initialFormState);
     const [editingId, setEditingId] = useState(null);
@@ -83,7 +76,7 @@ const SuperAdminSocieties = () => {
             adminMobile: soc.adminMobile || '',
             memberLimit: soc.memberLimit || 50,
             subscriptionPlan: soc.subscriptionPlan || 'DEMO',
-            enabledFeatures: soc.enabledFeatures || ['FEATURE_GLOBAL', 'FEATURE_GOVERNANCE', 'FEATURE_COMMUNITY'],
+            enabledFeatures: soc.enabledFeatures || [],
             adminPassword: ''
         });
         setEditingId(soc.id);
@@ -201,38 +194,76 @@ const SuperAdminSocieties = () => {
                             </div>
                         </div>
 
-                        {/* Feature Toggles Section */}
-                        <div className="pt-6 border-t border-glass-border">
-                            <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4 ml-1">Feature Access Management</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {FEATURES.map(feature => (
-                                    <label key={feature.id} className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer group ${formData.enabledFeatures?.includes(feature.id)
-                                        ? 'bg-primary/5 border-primary shadow-sm'
-                                        : 'bg-surface-light border-glass-border hover:border-text-muted'
-                                        }`}>
-                                        <div className="relative flex items-center mt-1">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.enabledFeatures?.includes(feature.id)}
-                                                onChange={() => {
-                                                    const current = formData.enabledFeatures || [];
-                                                    const next = current.includes(feature.id)
-                                                        ? current.filter(id => id !== feature.id)
-                                                        : [...current, feature.id];
-                                                    setFormData({ ...formData, enabledFeatures: next });
-                                                }}
-                                                className="w-5 h-5 rounded border-glass-border text-primary focus:ring-primary/20 cursor-pointer"
-                                            />
+                        {/* Granular Feature Access Management */}
+                        <div className="pt-8 border-t border-glass-border">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-primary">Granular Module Access</h3>
+                                    <p className="text-[10px] text-text-muted font-bold uppercase">Select specific sub-features to enable for this society</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, enabledFeatures: FEATURE_DETAILS.flatMap(cat => cat.items.map(i => i.id)) })}
+                                        className="text-[9px] font-black uppercase px-2 py-1 bg-primary/10 text-primary rounded border border-primary/20 hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                        Enable All
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, enabledFeatures: [] })}
+                                        className="text-[9px] font-black uppercase px-2 py-1 bg-surface-light text-text-muted rounded border border-glass-border hover:bg-error hover:text-white transition-colors"
+                                    >
+                                        Disable All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {FEATURE_DETAILS.map((category, catIdx) => (
+                                    <div key={catIdx} className="space-y-4">
+                                        <div className="flex items-center gap-2 pb-2 border-b border-glass-border">
+                                            {catIdx === 0 && <Building2 size={16} className="text-secondary" />}
+                                            {catIdx === 1 && <CreditCard size={16} className="text-success" />}
+                                            {catIdx === 2 && <FileCheck size={16} className="text-warning" />}
+                                            {catIdx === 3 && <Users size={16} className="text-primary" />}
+                                            <h4 className="text-[11px] font-black uppercase tracking-wider text-text">{category.category}</h4>
                                         </div>
-                                        <div className="flex-1 space-y-1">
-                                            <p className={`text-sm font-black uppercase ${formData.enabledFeatures?.includes(feature.id) ? 'text-primary' : 'text-text'}`}>
-                                                {feature.name}
-                                            </p>
-                                            <p className="text-[10px] text-text-muted font-bold leading-tight uppercase">
-                                                {feature.desc}
-                                            </p>
+                                        <div className="space-y-2">
+                                            {category.items.map(feature => (
+                                                <label
+                                                    key={feature.id}
+                                                    className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer group ${formData.enabledFeatures?.includes(feature.id)
+                                                        ? 'bg-primary/5 border-primary shadow-sm'
+                                                        : 'bg-surface-light border-glass-border hover:border-text-muted'
+                                                        }`}
+                                                >
+                                                    <div className="relative flex items-center mt-0.5">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.enabledFeatures?.includes(feature.id)}
+                                                            onChange={() => {
+                                                                const current = formData.enabledFeatures || [];
+                                                                const next = current.includes(feature.id)
+                                                                    ? current.filter(id => id !== feature.id)
+                                                                    : [...current, feature.id];
+                                                                setFormData({ ...formData, enabledFeatures: next });
+                                                            }}
+                                                            className="w-4 h-4 rounded border-glass-border text-primary focus:ring-primary/20 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 space-y-0.5">
+                                                        <p className={`text-[10px] font-black uppercase ${formData.enabledFeatures?.includes(feature.id) ? 'text-primary' : 'text-text'}`}>
+                                                            {feature.label}
+                                                        </p>
+                                                        <p className="text-[9px] text-text-muted font-bold leading-tight uppercase">
+                                                            {feature.description}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            ))}
                                         </div>
-                                    </label>
+                                    </div>
                                 ))}
                             </div>
                         </div>

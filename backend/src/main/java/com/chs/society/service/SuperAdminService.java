@@ -170,7 +170,10 @@ public class SuperAdminService {
                     log.error("Failed to serialize features", e);
                 }
             } else {
-                List<String> defaults = List.of("FEATURE_GLOBAL", "FEATURE_GOVERNANCE", "FEATURE_COMMUNITY");
+                List<String> defaults = List.of(
+                        "FEAT_SOCIETY_STRUCT", "FEAT_COMMITTEE", "FEAT_RBAC", "FEAT_RESIDENTS",
+                        "FEAT_BILLING", "FEAT_ACCOUNTING", "FEAT_DOCUMENTS", "FEAT_MEETINGS",
+                        "FEAT_NOTIFICATIONS");
                 try {
                     society.enabledFeatures(objectMapper.writeValueAsString(defaults));
                 } catch (Exception e) {

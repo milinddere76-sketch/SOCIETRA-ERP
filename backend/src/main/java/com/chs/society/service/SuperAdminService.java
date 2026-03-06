@@ -310,6 +310,18 @@ public class SuperAdminService {
     }
 
     @Transactional
+    public void deleteDemoSocieties() {
+        log.info("Starting cleanup of all societies with DEMO plan type.");
+        List<Society> demoSocieties = societyRepository.findBySubscriptionPlanPlanType(
+                com.chs.society.model.subscription.SubscriptionPlan.PlanType.DEMO);
+
+        for (Society s : demoSocieties) {
+            log.info("Deleting demo society: {} ({})", s.getName(), s.getId());
+            deleteSociety(s.getId());
+        }
+    }
+
+    @Transactional
     public SocietyDto approveSociety(UUID id) {
         Society society = societyRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Society not found"));

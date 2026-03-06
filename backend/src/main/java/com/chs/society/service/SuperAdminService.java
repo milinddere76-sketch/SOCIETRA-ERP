@@ -146,7 +146,7 @@ public class SuperAdminService {
                 }
             }
 
-            Society society = Society.builder()
+            Society.SocietyBuilder society = Society.builder()
                     .name(request.getName())
                     .registrationNumber(request.getRegistrationNumber())
                     .address(request.getAddress())

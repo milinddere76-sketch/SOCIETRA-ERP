@@ -24,7 +24,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OtpTokenRepository otpTokenRepository;
     private final JwtUtils jwtUtils;
-    private final WhatsAppNotificationService whatsappNotificationService;
 
     public LoginResponse initiateLogin(String email, String password) {
         log.info("Attempting login for user: {}", email);

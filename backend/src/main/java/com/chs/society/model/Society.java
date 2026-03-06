@@ -69,6 +69,6 @@ public class Society extends BaseEntity {
     private String enabledFeatures; // JSON string of feature keys
 
     public enum SocietyStatus {
-        PENDING, ACTIVE, SUSPENDED
+        PENDING, ACTIVE, SUSPENDED, INACTIVE
     }
 }

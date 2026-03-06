@@ -19,4 +19,8 @@ public interface MeetingRSVPRepository extends JpaRepository<MeetingRSVP, UUID> 
 
     @Modifying
     void deleteByUserId(UUID userId);
+
+    @Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM MeetingRSVP r WHERE r.meeting.society.id = :societyId")
+    void deleteBySocietyId(@org.springframework.data.repository.query.Param("societyId") UUID societyId);
 }

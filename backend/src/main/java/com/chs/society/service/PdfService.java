@@ -405,7 +405,7 @@ public class PdfService {
         Document document = new Document(new Rectangle(842, 595), 30, 30, 30, 30); // Custom premium landscape size
 
         try {
-            PdfWriter writer = PdfWriter.getInstance(document, baos);
+            PdfWriter.getInstance(document, baos);
             document.open();
 
             // Premium Colors Palette
@@ -616,25 +616,6 @@ public class PdfService {
         table.addCell(cell);
     }
 
-    private void addDetailCell(PdfPTable table, String label, String value, Font labelFont, Font dataFont) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(Rectangle.BOTTOM);
-        cell.setBorderWidth(0.5f);
-        cell.setBorderColor(new Color(200, 200, 200));
-        cell.setPadding(8f);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-
-        Paragraph p = new Paragraph(label.toUpperCase(), labelFont);
-        p.setAlignment(Element.ALIGN_CENTER);
-        cell.addElement(p);
-
-        Paragraph v = new Paragraph(value, dataFont);
-        v.setAlignment(Element.ALIGN_CENTER);
-        cell.addElement(v);
-
-        table.addCell(cell);
-    }
-
     private void addStandardDataCell(PdfPTable table, String label, String value, Font labelFont, Font dataFont,
             Color bgColor) {
         PdfPCell cellLabel = new PdfPCell(new Phrase(label, labelFont));
@@ -648,28 +629,6 @@ public class PdfService {
         cellValue.setBorderColor(new Color(220, 220, 220));
         cellValue.setPadding(8f);
         table.addCell(cellValue);
-    }
-
-    private void addSignCell(PdfPTable table, String label, String name, Font font) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(Rectangle.NO_BORDER);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-
-        Paragraph line = new Paragraph("__________________________", font);
-        line.setAlignment(Element.ALIGN_CENTER);
-        cell.addElement(line);
-
-        Paragraph l = new Paragraph(label, font);
-        l.setAlignment(Element.ALIGN_CENTER);
-        cell.addElement(l);
-
-        if (name != null && !name.isEmpty()) {
-            Paragraph n = new Paragraph("(" + name + ")", font);
-            n.setAlignment(Element.ALIGN_CENTER);
-            cell.addElement(n);
-        }
-
-        table.addCell(cell);
     }
 
     private String NumberToWords(int n) {

@@ -1,6 +1,7 @@
 package com.chs.society.dto;
 
 import lombok.Data;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -19,5 +20,5 @@ public class SocietyDto {
     private String status;
     private Integer memberLimit;
     private boolean approved;
-    private java.util.List<String> enabledFeatures;
+    private List<String> enabledFeatures;
 }

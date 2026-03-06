@@ -253,7 +253,18 @@ public class SuperAdminService {
     public SocietyDto updateSocietyStatus(UUID id, String status) {
         Society society = societyRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Society not found"));
-        society.setStatus(Society.SocietyStatus.valueOf(status.toUpperCase()));
+
+        String statusStr = status.toUpperCase();
+        if (statusStr.equals("INACTIVE")) {
+            society.setStatus(Society.SocietyStatus.INACTIVE);
+        } else if (statusStr.equals("ACTIVE")) {
+            society.setStatus(Society.SocietyStatus.ACTIVE);
+        } else if (statusStr.equals("SUSPENDED")) {
+            society.setStatus(Society.SocietyStatus.SUSPENDED);
+        } else {
+            society.setStatus(Society.SocietyStatus.PENDING);
+        }
+
         return mapToSocietyDto(societyRepository.save(society));
     }
 
@@ -269,13 +280,17 @@ public class SuperAdminService {
         // 1. Transactions & Bills Items
         entityManager.createQuery("DELETE FROM MaintenanceBillItem mi WHERE mi.bill.society.id = :id")
                 .setParameter("id", id).executeUpdate();
+        entityManager.createQuery(
+                "DELETE FROM AccountTransaction at WHERE at.journalEntry.id IN (SELECT j.id FROM JournalEntry j WHERE j.society.id = :id)")
+                .setParameter("id", id).executeUpdate();
+        entityManager.createQuery("DELETE FROM JournalEntry j WHERE j.society.id = :id")
+                .setParameter("id", id).executeUpdate();
         entityManager.createQuery("DELETE FROM BankStatementEntry e WHERE e.society.id = :id")
                 .setParameter("id", id).executeUpdate();
         entityManager
                 .createQuery(
                         "DELETE FROM OtpToken t WHERE t.email IN (SELECT u.email FROM User u WHERE u.society.id = :id)")
-                .setParameter("id", id)
-                .executeUpdate();
+                .setParameter("id", id).executeUpdate();
 
         // 2. Main Transactional Data
         maintenanceBillRepository.deleteBySocietyId(id);
@@ -288,15 +303,27 @@ public class SuperAdminService {
         complaintRepository.deleteBySocietyId(id);
         assetRepository.deleteBySocietyId(id);
         meetingMinutesRepository.deleteBySocietyId(id);
+
         notificationRepository.deleteBySocietyId(id);
+        rsvpRepository.deleteBySocietyId(id);
         committeeMemberRepository.deleteBySocietyId(id);
         shareCertificateRepository.deleteBySocietyId(id);
+
+        entityManager.createQuery("DELETE FROM StaffRegister s WHERE s.society.id = :id")
+                .setParameter("id", id).executeUpdate();
+        entityManager.createQuery("DELETE FROM ParkingRegister p WHERE p.society.id = :id")
+                .setParameter("id", id).executeUpdate();
 
         // 4. Configuration & Master Data
         maintenanceConfigRepository.deleteBySocietyId(id);
         maintenanceHeadRepository.deleteBySocietyId(id);
         bankDetailRepository.deleteBySocietyId(id);
         ledgerRepository.deleteBySocietyId(id);
+
+        entityManager.createQuery("UPDATE AccountGroup ag SET ag.parent = NULL WHERE ag.society.id = :id")
+                .setParameter("id", id).executeUpdate();
+        entityManager.createQuery("DELETE FROM AccountGroup ag WHERE ag.society.id = :id")
+                .setParameter("id", id).executeUpdate();
 
         // 5. Units & Wings
         unitRepository.deleteBySocietyId(id);
@@ -384,9 +411,10 @@ public class SuperAdminService {
 
         if (society.getEnabledFeatures() != null) {
             try {
-                dto.setEnabledFeatures(objectMapper.readValue(society.getEnabledFeatures(),
+                List<String> features = objectMapper.readValue(society.getEnabledFeatures(),
                         new TypeReference<List<String>>() {
-                        }));
+                        });
+                dto.setEnabledFeatures(features);
             } catch (Exception e) {
                 log.error("Failed to deserialize features for society {}", society.getId(), e);
             }

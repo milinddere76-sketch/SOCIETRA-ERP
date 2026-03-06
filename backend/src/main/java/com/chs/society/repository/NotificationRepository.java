@@ -18,4 +18,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Modifying
     @org.springframework.data.jpa.repository.Query("DELETE FROM Notification n WHERE n.user.society.id = :societyId")
     void deleteBySocietyId(@org.springframework.data.repository.query.Param("societyId") UUID societyId);
+
+    @Modifying
+    void deleteByUserId(UUID userId);
 }
